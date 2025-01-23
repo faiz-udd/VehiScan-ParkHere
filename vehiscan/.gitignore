@@ -1,0 +1,40 @@
+# .gitignore for a Django project
+
+# Python
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.env
+
+# Django
+*.log
+*.pot
+*.pyc
+*.mo
+*.swp
+db.sqlite3
+media
+
+# Environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+#general
+development_ki_Kahani
