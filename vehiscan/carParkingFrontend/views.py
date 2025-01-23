@@ -1,3 +1,112 @@
-from django.shortcuts import render
+# Description: This file contains the views for the website.
+from django.shortcuts import get_object_or_404, render, redirect
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import authenticate, login
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import logout
+from .models import ParkingLot, ParkingLotMonitor
+from . import WebPaths
+from .utility import record_user_query
+from django.db.models import QuerySet
 
-# Create your views here.
+
+class WebPages:
+    HOME_PAGE = "website/index.html"
+    PARKING_LOT = "website/parking-lot.html"
+    PARKING_LOT_MONITOR = "website/parking-lot-monitor.html"
+    PARKING_LOT_MONITORS = "website/parking-lot-monitors.html"
+    PARKING_LOTS = "website/parking-lots.html"
+    REGISTER_USER = "website/register-user.html"
+    LOGIN_USER = "website/login-user.html"
+    PRIVACY_POLICY = "website/privacy-policy.html"
+
+
+def index(request):
+    parking_lots: QuerySet = ParkingLot.objects.all()
+    return render(request, WebPages.HOME_PAGE, {"parking_lots": parking_lots})
+
+def login_user(request):
+    if request.method == "POST":  # FORM SUBMITTED
+        username = request.POST["username"]
+        password = request.POST["password"]
+        user = authenticate(request, username=username, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect(WebPaths.PARKING_LOTS)
+        else:
+            return redirect(WebPaths.LOGIN)
+    else:  # FORM NOT SUBMITTED
+        form = AuthenticationForm()
+        return render(request, "registration/login.html", {"form": form})
+
+
+def logout_user(request):
+    logout(request)
+    return redirect(WebPages.HOME_PAGE)
+
+
+def parking_lot(request, parking_lot_id):
+    parking_lot = get_object_or_404(ParkingLot, pk=parking_lot_id)
+    return render(request, WebPages.PARKING_LOT, {"parking_lot": parking_lot})
+
+
+def parking_lots(request):
+    parking_lots: QuerySet = ParkingLot.objects.all()
+    return render(request, WebPages.PARKING_LOTS, {"parking_lots": parking_lots})
+
+
+def parking_lot_monitor(request, parking_lot_monitor_id):
+    parking_lot_monitor = get_object_or_404(
+        ParkingLotMonitor, pk=parking_lot_monitor_id
+    )
+    return render(
+        request,
+        WebPages.PARKING_LOT_MONITOR,
+        {"parking_lot_monitor": parking_lot_monitor},
+    )
+
+
+def parking_lot_monitors(request):
+    parking_lot_monitor_list: QuerySet = ParkingLotMonitor.objects.all()
+
+    if request.method == "POST":  # FORM SUBMITTED
+        latitude = request.POST["latitude"]
+        longitude = request.POST["longitude"]
+
+        record_user_query(latitude, longitude, request)
+
+        context = {
+            "parking_lot_monitors": parking_lot_monitor_list,
+            "user_point": {"latitude": latitude, "longitude": longitude},
+        }
+        return render(request, WebPages.PARKING_LOT_MONITORS, context)
+
+    return render(
+        request,
+        WebPages.PARKING_LOT_MONITORS,
+        {"parking_lot_monitors": parking_lot_monitor_list},
+    )
+
+def privacy_policy(request):
+    """Builds the privacy policy page."""
+    return render(request, WebPages.PRIVACY_POLICY)
+
+def register_user(request):
+    if request.method == "POST":
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            # Save the user to the database
+            user = form.save()
+            # Add first name, last name, and email fields to the user model
+            user.first_name = request.POST["first_name"]
+            user.last_name = request.POST["last_name"]
+            user.email = request.POST["email"]
+            user.save()
+            return redirect(WebPaths.LOGIN)
+    else:
+        form = UserCreationForm()
+    return render(request, WebPages.REGISTER_USER, {"form": form})
+
+    # load the user details from the request
+    # create a new user
+
