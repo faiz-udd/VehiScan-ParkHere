@@ -1,0 +1,174 @@
+/* Navbar Sytle.. */
+body{
+  margin:0;
+  padding:0;
+  background-color: #e3f2fd;
+}
+.nav-link {
+    font-size: 16px;
+    font-weight: 500;
+    transition: color 0.3s ease, transform 0.2s ease;
+  }
+
+  .nav-link:hover {
+    color: #f8f9fa !important;
+    transform: translateY(-2px);
+  }
+
+  .navbar-brand {
+    font-size: 24px;
+    font-weight: 600;
+  }
+
+  .navbar-toggler-icon {
+    background-color: #ffffff;
+  }
+
+  .navbar-nav {
+    gap: 20px;
+  }
+
+  .navbar-dark .navbar-nav .nav-link {
+    color: #f8f9fa;
+  }
+
+  .navbar-dark .navbar-nav .nav-link.active {
+    color: #d4d4d4;
+  }
+
+/* Carousel Styles */
+.hero {
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel-container {
+    position: relative;
+    width: 100%;
+    height: 500px;
+}
+
+.carousel-slide {
+    position: absolute;
+    top: 0;
+    left: 100%;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    transition: all 1.5s ease-in-out;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-slide img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    position: absolute;
+}
+
+.carousel-slide.active {
+    left: 0;
+    opacity: 1;
+}
+
+.carousel-caption {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    color: white;
+    background: rgba(0, 0, 0, 0.5);
+    padding: 1rem 2rem;
+    border-radius: 10px;
+}
+
+.carousel-caption h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.carousel-caption p {
+    font-size: 1.2rem;
+}
+
+/* Animation for Text */
+.animate-text {
+    opacity: 0;
+    transform: translateY(20px);
+    animation: slideIn 1.5s ease-in-out forwards;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+
+
+/* Map View Styles */
+#map-container {
+  position: relative;
+  width: 100%;
+  height: 450px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  margin-top: 50px;
+  padding: 20px;
+  background:#0a001a;
+}
+
+.car-image-container {
+  position: relative;
+  z-index: 1;
+  width: 70%;
+  right:20%;
+  max-width: 600px;
+}
+
+.car-image-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 5px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+  
+}
+
+#map {
+  position: absolute;
+  z-index: 1;
+  width: 50%;
+  height: 300px;
+  bottom: -20px;
+  left: 70%;
+  transform: translateX(-50%);
+  border-radius: 5px;
+  box-shadow: 0 8px 15px rgba(0, 0, 0, 0.15);
+}
+
+
+@media (max-width: 768px) {
+  #map-container {
+      flex-direction: column;
+      align-items: center;
+      height: auto;
+  }
+
+  .car-image-container {
+      width: 90%;
+  }
+
+  #map {
+      width: 80%;
+      left: 50%;
+      bottom: -15px;
+      transform: translateX(-150%);
+  }
+}

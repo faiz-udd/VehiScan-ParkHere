@@ -1,0 +1,136 @@
+{%include 'website/navbar.html'%}
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .table-container {
+            background-color: #f8f9fa;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        table th,
+        table td {
+            text-align: center;
+            padding: 15px;
+        }
+
+        table th {
+            background-color: #007bff;
+            color: white;
+            font-weight: bold;
+        }
+
+        table tbody tr:nth-child(even) {
+            background-color: #f1f1f1;
+        }
+
+        table tbody tr:hover {
+            background-color: #e9ecef;
+            cursor: pointer;
+        }
+
+        table img {
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .no-data-message {
+            text-align: center;
+            margin: 20px 0;
+            font-size: 1.2rem;
+            color: #6c757d;
+        }
+
+        @media (max-width: 768px) {
+            table th,
+            table td {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+  <main class="main">
+
+    <!-- Page Title -->
+    <div class="page-title dark-background" data-aos="fade" style="background-image: url(static/assets/img/page-title-bg.jpg);">
+      <div class="container position-relative">
+        <h1>Parking Lots</h1>
+        <p>There are Parking Businesses who are enrolled with us!.</p>
+        <nav class="breadcrumbs">
+          <ol>
+            <li><a href="index.html">Home</a></li>
+            <li class="current">Parking Lots</li>
+          </ol>
+        </nav>
+      </div>
+    </div><!-- End Page Title -->
+
+    {% comment %} Parking Lots Start Here... {% endcomment %}
+    <div class="container mt-5">
+    
+        <!-- Parking Lots Table -->
+        <div class="table-container">
+            {% if parking_lots %}
+            <table class="table table-striped" aria-describedby="mydesc">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Address</th>
+                        <th>Hours</th>
+                        <th>Is Paid Parking</th>
+                        <th>Latitude</th>
+                        <th>Longitude</th>
+                        <th>Image</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for parking_lot in parking_lots %}
+                    <tr onclick="window.location.href='{% url 'parking-lot' parking_lot.id %}'">
+                        <td><strong>{{ parking_lot.name }}</strong></td>
+                        <td>{{ parking_lot.address }}</td>
+                        <td>{{ parking_lot.hours }}</td>
+                        <td>
+                            {% if parking_lot.isPaidParking %}
+                            <span style="color: green;">Yes</span>
+                            {% else %}
+                            <span style="color: red;">No</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ parking_lot.latitude }}</td>
+                        <td>{{ parking_lot.longitude }}</td>
+                        <td>
+                            <img src="static{{ parking_lot.image.url }}" alt="Image of {{ parking_lot.name }}" width="60px" height="40px" />
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="no-data-message">
+                <p>No parking lots are currently available. Please check back later.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+
+      <!-- Testimonials Section -->
+      {%include 'website/testimonials.html'%}
+      <!-- /Testimonials Section -->
+  
+      <!-- Faq Section -->
+      {%include 'website/faqs.html'%}
+      <!-- /Faq Section -->
+  
+    </main>
+  
+    {%include 'website/footer.html'%}
+
