@@ -1,0 +1,23 @@
+{% block extra_head %}
+<style>
+  #map {
+    height: {{ height|default:"400px" }};
+    width: {{ width|default:"100%" }};
+  }
+</style>
+
+<script>
+  function initMap() {
+    const map = new google.maps.Map(document.getElementById('map'), {
+      zoom: {{ zoom|default:12 }},
+      center: { lat: {{ center_lat|default:0 }}, lng: {{ center_lng|default:0 }} }
+    });
+    
+    {% block map_markers %}{% endblock %}
+  }
+</script>
+
+<script src="https://maps.googleapis.com/maps/api/js?callback=initMap" async defer></script>
+{% endblock %}
+
+<div id="map"></div> 

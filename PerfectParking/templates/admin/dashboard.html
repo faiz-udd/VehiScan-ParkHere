@@ -1,0 +1,45 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div class="dashboard-container">
+    <h2>Admin Dashboard</h2>
+    
+    <!-- Stats Overview -->
+    <div class="stats-overview">
+        <div class="stat-card">
+            <h3>Total Bookings</h3>
+            <p>{{ total_bookings }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Revenue</h3>
+            <p>${{ total_revenue|floatformat:2 }}</p>
+        </div>
+    </div>
+
+    <!-- Recent Bookings -->
+    <div class="recent-bookings">
+        <h3>Recent Bookings</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Parking Lot</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for booking in recent_bookings %}
+                <tr>
+                    <td>{{ booking.user.get_full_name }}</td>
+                    <td>{{ booking.parking_lot.name }}</td>
+                    <td>{{ booking.start_time|date:"M d, Y" }}</td>
+                    <td>${{ booking.total_amount|floatformat:2 }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %} 

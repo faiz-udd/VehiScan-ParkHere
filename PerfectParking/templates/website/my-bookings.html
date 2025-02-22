@@ -1,0 +1,367 @@
+{% extends 'master.html' %}
+{%load static%}
+{% block title %}My Bookings{% endblock %}
+{% block head %}
+<style>
+.booking-wrapper {
+    background: #f8f9fa;
+    min-height: calc(100vh - 76px);
+    padding: 40px 0;
+}
+
+.booking-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+    overflow: hidden;
+}
+
+.booking-card:hover {
+    transform: translateY(-5px);
+}
+
+.booking-status {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 500;
+}
+
+.booking-header {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 20px;
+}
+
+.booking-timer {
+    background: rgba(255,255,255,0.1);
+    padding: 10px;
+    border-radius: 10px;
+    text-align: center;
+}
+
+.timer-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+.booking-details {
+    padding: 20px;
+}
+
+.detail-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.detail-icon {
+    width: 40px;
+    height: 40px;
+    background: #f8f9fa;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    color: var(--primary-color);
+}
+
+.filter-tabs {
+    background: white;
+    border-radius: 30px;
+    padding: 5px;
+    display: inline-flex;
+    margin-bottom: 20px;
+}
+
+.filter-tab {
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.filter-tab.active {
+    background: var(--primary-color);
+    color: white;
+}
+
+.qr-code {
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    text-align: center;
+}
+.status-active {
+        background-color: #28a745;
+        color: white;
+    }
+    .status-completed {
+        background-color: #007bff;
+        color: white;
+    }
+    .status-cancelled {
+        background-color: #dc3545;
+        color: white;
+    }
+    .status-upcoming {
+        background-color: #ffc107;
+        color: black;
+    }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="booking-wrapper">
+    <div class="container">
+        <!-- Header Section -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="mb-1">My Bookings</h2>
+                <p class="text-muted mb-0">Manage your parking reservations</p>
+            </div>
+            <a href="{% url 'PerfectParking:parking-lots' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Booking
+            </a>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div class="filter-tabs mb-4">
+            <div class="filter-tab active" data-status="all">All</div>
+            <div class="filter-tab" data-status="active">Active</div>
+            <div class="filter-tab" data-status="upcoming">Upcoming</div>
+            <div class="filter-tab" data-status="completed">Completed</div>
+            <div class="filter-tab" data-status="cancelled">Cancelled</div>
+        </div>
+
+        <!-- Bookings Grid -->
+        <div class="row">
+            {% for booking in bookings %}
+            <div class="col-md-6 mb-4 booking-item" data-status="{{ booking.status|lower }}">
+                <div class="card booking-card">
+                    <div class="booking-header">
+                        <div class="row align-items-center">
+                            <div class="col-md-8">
+                                <h5 class="mb-1">{{ booking.parking_lot.name }}</h5>
+                                <p class="mb-0">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    {{ booking.parking_lot.address }}
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                {% if booking.status == 'ACTIVE' %}
+                                <div class="booking-timer">
+                                    <div class="timer-value" 
+                                         id="timer-{{ booking.id }}"
+                                         data-end-time="{{ booking.end_time|date:'c' }}">
+                                        Calculating...
+                                    </div>
+                                    <small>Time Remaining</small>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <span class="booking-status status-{{ booking.status|lower }}">
+                            {{ booking.status }}
+                        </span>
+                    </div>
+
+                    <div class="booking-details">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-calendar"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Date</small>
+                                        <div>{{ booking.start_time|date:"M d, Y" }}</div>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-clock"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Duration</small>
+                                        <div>{{ booking.duration }} hours</div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Spot Number</small>
+                                        <div>{{ booking.parking_spot.number }}</div>
+                                    </div>
+                                </div>
+                                <div class="detail-item">
+                                    <div class="detail-icon">
+                                        <i class="fas fa-dollar-sign"></i>
+                                    </div>
+                                    <div>
+                                        <small class="text-muted">Total Cost</small>
+                                        <div>${{ booking.total_cost }}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {% if booking.status == 'ACTIVE' %}
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="qr-code">
+                                    <img src="{% url 'generate-qr' booking.id %}" 
+                                         alt="QR Code"
+                                         width="100">
+                                    <div class="mt-2">
+                                        <small class="text-muted">Scan to verify</small>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="d-grid gap-2">
+                                    <button class="btn btn-outline-primary">
+                                        <i class="fas fa-directions me-2"></i>
+                                        Get Directions
+                                    </button>
+                                    <button class="btn btn-outline-danger" 
+                                            data-booking-id="{{ booking.id }}" 
+                                            data-csrf-token="{{ csrf_token }}" 
+                                            onclick="cancelBooking(this)">
+                                        <i class="fas fa-times me-2"></i>
+                                        Cancel Booking
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if booking.status == 'COMPLETED' %}
+                        <div class="mt-3">
+                            <button class="btn btn-outline-primary w-100">
+                                <i class="fas fa-receipt me-2"></i>
+                                Download Receipt
+                            </button>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12">
+                <div class="text-center py-5">
+                    <img src="{% static 'images/no-booking.svg' %}" 
+                         alt="No bookings"
+                         width="200"
+                         class="mb-4">
+                    <h4>No Bookings Found</h4>
+                    <p class="text-muted">You haven't made any parking reservations yet.</p>
+                    <a href="{% url 'PerfectParking:parking-lots' %}" class="btn btn-primary">
+                        Book Your First Spot
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Filter functionality
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            // Update active tab
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+
+            // Filter bookings
+            const status = tab.dataset.status;
+            document.querySelectorAll('.booking-item').forEach(item => {
+                if (status === 'all' || item.dataset.status === status) {
+                    item.style.display = 'block';
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Timer functionality for active bookings
+    function updateTimer(elementId, endTime) {
+        const timerElement = document.getElementById(elementId);
+        if (!timerElement) return;
+
+        const end = new Date(endTime).getTime();
+        
+        const timer = setInterval(() => {
+            const now = new Date().getTime();
+            const distance = end - now;
+
+            if (distance < 0) {
+                clearInterval(timer);
+                timerElement.innerHTML = "EXPIRED";
+                return;
+            }
+
+            const hours = Math.floor(distance / (1000 * 60 * 60));
+            const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+            timerElement.innerHTML = 
+                `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }, 1000);
+    }
+
+    // Initialize all timers
+    document.querySelectorAll('[id^="timer-"]').forEach(timerElement => {
+        const endTime = timerElement.dataset.endTime;
+        if (endTime) {
+            updateTimer(timerElement.id, endTime);
+        }
+    });
+});
+
+// Add functionality for cancel booking
+function cancelBooking(button) {
+    const bookingId = button.dataset.bookingId;
+    const csrfToken = button.dataset.csrfToken;
+    
+    if (confirm('Are you sure you want to cancel this booking?')) {
+        fetch(`/booking/${bookingId}/cancel/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrfToken,
+            },
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert(data.error || 'Failed to cancel booking');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to cancel booking');
+        });
+    }
+}
+
+// Add functionality for get directions
+function getDirections(latitude, longitude) {
+    window.open(`https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`);
+}
+</script>
+{% endblock %}
+{% endblock %}

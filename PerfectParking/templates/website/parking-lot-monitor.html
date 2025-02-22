@@ -1,0 +1,89 @@
+{% extends 'master.html' %}
+{% block title %}{{parking_lot_monitor.name}}{% endblock %}
+
+{% block main %}
+<div class="container py-4">
+    <h1 class="mb-4">{{parking_lot_monitor.name}}</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Parking Status</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th>Free Spaces</th>
+                                <td>{{parking_lot_monitor.free_parking_spaces}}</td>
+                            </tr>
+                            <tr>
+                                <th>Total Spaces</th>
+                                <td>{{parking_lot_monitor.parkingLot.parking_spaces}}</td>
+                            </tr>
+                            <tr>
+                                <th>Vacancy Rate</th>
+                                <td>{{parking_lot_monitor.get_vacancy_rate}}%</td>
+                            </tr>
+                            <tr>
+                                <th>Last Updated</th>
+                                <td>{{parking_lot_monitor.dateTimeLastUpdated}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Location Details</h2>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <tr>
+                                <th>Address</th>
+                                <td>{{parking_lot_monitor.parkingLot.address}}</td>
+                            </tr>
+                            <tr>
+                                <th>Hours</th>
+                                <td>{{parking_lot_monitor.parkingLot.hours}}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h2 class="card-title">Location Map</h2>
+                    <div class="ratio ratio-4x3">
+                        <iframe 
+                            title="map"
+                            class="rounded"
+                            src="https://maps.google.com/maps?q={{parking_lot_monitor.latitude}},{{parking_lot_monitor.longitude}}&z=17&ie=UTF8&output=embed"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Live Camera Feed</h2>
+                    {% if parking_lot_monitor.image %}
+                        <img 
+                            src="{{parking_lot_monitor.image.url}}" 
+                            class="img-fluid rounded" 
+                            alt="Parking lot camera view"
+                            loading="lazy"
+                        />
+                    {% else %}
+                        <div class="alert alert-info">
+                            No camera feed available at this time.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock main %}

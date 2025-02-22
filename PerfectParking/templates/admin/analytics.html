@@ -1,0 +1,283 @@
+{% extends 'master.html' %}
+{% block title %}Analytics Dashboard{% endblock %}
+
+{% block head %}
+<style>
+.analytics-wrapper {
+    background: #f8f9fa;
+    min-height: 100vh;
+    padding: 2rem;
+}
+
+.metric-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.3s;
+}
+
+.metric-card:hover {
+    transform: translateY(-5px);
+}
+
+.chart-card {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.trend-indicator {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.5rem;
+    border-radius: 15px;
+    font-size: 0.875rem;
+}
+
+.trend-up {
+    background: #e8f5e9;
+    color: #2e7d32;
+}
+
+.trend-down {
+    background: #ffebee;
+    color: #c62828;
+}
+
+.date-range-picker {
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    padding: 0.5rem 1rem;
+}
+
+.heatmap {
+    position: relative;
+    height: 400px;
+    border-radius: 15px;
+    overflow: hidden;
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="analytics-wrapper">
+    <div class="container-fluid">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>Analytics Dashboard</h2>
+            <input type="text" class="date-range-picker" id="dateRange">
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted mb-2">Total Revenue</h6>
+                    <h3>${{ total_revenue|floatformat:2 }}</h3>
+                    <div class="trend-indicator {% if revenue_trend > 0 %}trend-up{% else %}trend-down{% endif %}">
+                        <i class="fas fa-arrow-{% if revenue_trend > 0 %}up{% else %}down{% endif %} me-1"></i>
+                        {{ revenue_trend|abs }}%
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted mb-2">Occupancy Rate</h6>
+                    <h3>{{ occupancy_rate }}%</h3>
+                    <div class="trend-indicator {% if occupancy_trend > 0 %}trend-up{% else %}trend-down{% endif %}">
+                        <i class="fas fa-arrow-{% if occupancy_trend > 0 %}up{% else %}down{% endif %} me-1"></i>
+                        {{ occupancy_trend|abs }}%
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted mb-2">New Users</h6>
+                    <h3>{{ new_users_count }}</h3>
+                    <div class="trend-indicator {% if users_trend > 0 %}trend-up{% else %}trend-down{% endif %}">
+                        <i class="fas fa-arrow-{% if users_trend > 0 %}up{% else %}down{% endif %} me-1"></i>
+                        {{ users_trend|abs }}%
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <h6 class="text-muted mb-2">Average Duration</h6>
+                    <h3>{{ avg_duration }} hrs</h3>
+                    <div class="trend-indicator {% if duration_trend > 0 %}trend-up{% else %}trend-down{% endif %}">
+                        <i class="fas fa-arrow-{% if duration_trend > 0 %}up{% else %}down{% endif %} me-1"></i>
+                        {{ duration_trend|abs }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="row">
+            <div class="col-md-8">
+                <div class="chart-card">
+                    <h5 class="mb-4">Revenue Overview</h5>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h5 class="mb-4">Parking Lot Occupancy</h5>
+                    <div id="heatmap" class="heatmap"></div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="chart-card">
+                    <h5 class="mb-4">Popular Hours</h5>
+                    <canvas id="popularHoursChart"></canvas>
+                </div>
+                <div class="chart-card">
+                    <h5 class="mb-4">User Demographics</h5>
+                    <canvas id="demographicsChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detailed Stats -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h5 class="mb-4">Top Performing Locations</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Location</th>
+                                    <th>Revenue</th>
+                                    <th>Occupancy</th>
+                                    <th>Trend</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for location in top_locations %}
+                                <tr>
+                                    <td>{{ location.name }}</td>
+                                    <td>${{ location.revenue|floatformat:2 }}</td>
+                                    <td>{{ location.occupancy }}%</td>
+                                    <td>
+                                        <div class="trend-indicator {% if location.trend > 0 %}trend-up{% else %}trend-down{% endif %}">
+                                            {{ location.trend|abs }}%
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="chart-card">
+                    <h5 class="mb-4">User Behavior Analysis</h5>
+                    <canvas id="behaviorChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/mapbox-gl@2.3.1/dist/mapbox-gl.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script>
+// Initialize date range picker
+$('#dateRange').daterangepicker({
+    startDate: moment().subtract(29, 'days'),
+    endDate: moment(),
+    ranges: {
+       'Today': [moment(), moment()],
+       'Yesterday': [moment().subtract(1, 'days'), moment().subtract(1, 'days')],
+       'Last 7 Days': [moment().subtract(6, 'days'), moment()],
+       'Last 30 Days': [moment().subtract(29, 'days'), moment()],
+       'This Month': [moment().startOf('month'), moment().endOf('month')],
+       'Last Month': [moment().subtract(1, 'month').startOf('month'), moment().subtract(1, 'month').endOf('month')]
+    }
+}, function(start, end, label) {
+    updateCharts(start, end);
+});
+
+// Initialize charts
+const revenueChart = new Chart(document.getElementById('revenueChart').getContext('2d'), {
+    type: 'line',
+    data: {
+        labels: {{ revenue_labels|safe }},
+        datasets: [{
+            label: 'Revenue',
+            data: {{ revenue_data }},
+            borderColor: '#3498db',
+            tension: 0.4,
+            fill: true,
+            backgroundColor: 'rgba(52, 152, 219, 0.1)'
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
+
+// Initialize heatmap
+mapboxgl.accessToken = 'your_mapbox_token';
+const map = new mapboxgl.Map({
+    container: 'heatmap',
+    style: 'mapbox://styles/mapbox/light-v10',
+    center: [{{ center_lng }}, {{ center_lat }}],
+    zoom: 12
+});
+
+map.on('load', () => {
+    map.addSource('parking-lots', {
+        type: 'geojson',
+        data: {{ parking_lots_geojson|safe }}
+    });
+
+    map.addLayer({
+        id: 'parking-heat',
+        type: 'heatmap',
+        source: 'parking-lots',
+        paint: {
+            'heatmap-weight': [
+                'interpolate',
+                ['linear'],
+                ['get', 'occupancy'],
+                0, 0,
+                100, 1
+            ],
+            'heatmap-intensity': 1,
+            'heatmap-color': [
+                'interpolate',
+                ['linear'],
+                ['heatmap-density'],
+                0, 'rgba(0, 255, 0, 0)',
+                0.2, 'rgb(0, 255, 0)',
+                0.4, 'rgb(255, 255, 0)',
+                0.6, 'rgb(255, 140, 0)',
+                0.8, 'rgb(255, 0, 0)'
+            ],
+            'heatmap-radius': 30
+        }
+    });
+});
+
+// Function to update charts based on date range
+function updateCharts(start, end) {
+    fetch(`/api/analytics/data?start=${start.format('YYYY-MM-DD')}&end=${end.format('YYYY-MM-DD')}`)
+        .then(response => response.json())
+        .then(data => {
+            // Update charts with new data
+            updateRevenueChart(data.revenue);
+            updateOccupancyHeatmap(data.occupancy);
+            updateMetrics(data.metrics);
+        });
+}
+</script>
+{% endblock %}
+{% endblock %} 

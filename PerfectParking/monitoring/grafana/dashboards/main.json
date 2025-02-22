@@ -1,0 +1,33 @@
+
+{
+  "dashboard": {
+    "id": null,
+    "title": "PerfectParking Dashboard",
+    "tags": ["parking"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "title": "Request Latency",
+        "type": "graph",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "rate(request_latency_seconds_sum[5m]) / rate(request_latency_seconds_count[5m])",
+            "legendFormat": "{{method}} {{endpoint}}"
+          }
+        ]
+      },
+      {
+        "title": "Parking Lot Occupancy",
+        "type": "gauge",
+        "datasource": "Prometheus",
+        "targets": [
+          {
+            "expr": "parking_lot_occupancy_ratio",
+            "legendFormat": "{{parking_lot_id}}"
+          }
+        ]
+      }
+    ]
+  }
+} 

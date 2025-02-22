@@ -1,0 +1,102 @@
+{% extends 'website/base.html' %}
+{%load static%}
+{% load custom_filters %}
+{% block content %}
+<div class="row mb-4">
+  <div class="col">
+    <div class="d-flex justify-content-between align-items-center">
+      <h1><i class="fas fa-parking"></i> Parking Lots</h1>
+      <div class="input-group w-auto">
+        <input type="text" class="form-control" id="searchInput" placeholder="Search parking lots...">
+        <button class="btn btn-primary" type="button">
+          <i class="fas fa-search"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row" id="parkingLots">
+  {% for lot in parking_lots %}
+    <div class="col-md-4 mb-4 parking-lot-card">
+      <div class="card h-100">
+        <div class="position-relative">
+          <img src="{{ lot.get_image_url }}" class="card-img-top" alt="{{ lot.name }}" style="height: 200px; object-fit: cover;">
+          <div class="position-absolute top-0 end-0 m-2">
+            {% if lot.available_spaces > 0 %}
+              <span class="badge bg-success">
+                <i class="fas fa-car"></i> {{ lot.available_spaces }} Available
+              </span>
+            {% else %}
+              <span class="badge bg-danger">Full</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="card-body">
+          <h5 class="card-title">{{ lot.name }}</h5>
+          <p class="card-text">
+            <i class="fas fa-map-marker-alt text-primary"></i> {{ lot.address }}<br>
+            <i class="fas fa-clock text-info"></i> Open 24/7<br>
+            <i class="fas fa-dollar-sign text-success"></i> ${{ lot.base_price_per_hour }}/hour
+          </p>
+          <div class="progress mb-3">
+            {% with available_spaces=lot.available_spaces total_spaces=lot.total_spaces %}
+              {% if total_spaces > 0 %}
+                {% with percentage=available_spaces|divided_by:total_spaces|floatmul:100 %}
+                  <div class="progress-bar 
+                    {% if percentage > 50 %}bg-success
+                    {% elif percentage > 20 %}bg-warning
+                    {% else %}bg-danger{% endif %}" 
+                    role="progressbar" 
+                    style="width: {{ percentage|floatformat:1 }}%;"
+                    aria-valuenow="{{ percentage|floatformat:1 }}" 
+                    aria-valuemin="0" 
+                    aria-valuemax="100">
+                    {{ available_spaces }}/{{ total_spac es }} spots
+                  </div>
+                {% endwith %}
+              {% endif %}
+            {% endwith %}
+          </div>
+          <div class="d-grid gap-2">
+            <a href="{% url 'PerfectParking:parking-lot-detail' lot.id %}" class="btn btn-primary">
+              <i class="fas fa-info-circle"></i> View Details
+            </a>
+            {% if user.is_authenticated %}
+              <button class="btn btn-outline-primary">
+                <i class="far fa-heart"></i> Save
+              </button>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  {% empty %}
+    <div class="col-12">
+      <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i> No parking lots available at the moment.
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+{% block scripts %}
+<script>
+document.getElementById('searchInput').addEventListener('keyup', function(e) {
+  const searchText = e.target.value.toLowerCase();
+  const cards = document.getElementsByClassName('parking-lot-card');
+  
+  Array.from(cards).forEach(card => {
+    const title = card.querySelector('.card-title').textContent.toLowerCase();
+    const address = card.querySelector('.card-text').textContent.toLowerCase();
+    
+    if (title.includes(searchText) || address.includes(searchText)) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+});
+</script>
+{% endblock %}
+{% endblock %}

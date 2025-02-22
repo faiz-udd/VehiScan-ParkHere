@@ -1,0 +1,136 @@
+{% extends 'master.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block head %}
+<style>
+.auth-wrapper {
+    min-height: calc(100vh - 200px);
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+}
+
+.auth-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    overflow: hidden;
+}
+
+.auth-sidebar {
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: white;
+    padding: 40px;
+}
+
+.auth-form {
+    padding: 40px;
+}
+
+.social-login {
+    border-top: 1px solid #dee2e6;
+    padding-top: 20px;
+    margin-top: 20px;
+}
+
+.social-btn {
+    width: 100%;
+    margin-bottom: 10px;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.form-control {
+    padding: 12px;
+    border-radius: 8px;
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="auth-wrapper">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card auth-card">
+                    <div class="row g-0">
+                        <div class="col-md-5">
+                            <div class="auth-sidebar h-100">
+                                <h2 class="mb-4">Welcome Back!</h2>
+                                <p class="mb-4">Log in to access your account and manage your parking reservations.</p>
+                                <div class="d-none d-md-block">
+                                    <h4 class="mb-3">Benefits of logging in:</h4>
+                                    <ul class="list-unstyled">
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"></i> Quick booking process</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"></i> View booking history</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"></i> Save favorite spots</li>
+                                        <li class="mb-2"><i class="fas fa-check-circle me-2"></i> Special member rates</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-7">
+                            <div class="auth-form">
+                                <h3 class="mb-4">Login to Your Account</h3>
+                                
+                                {% if form.errors %}
+                                <div class="alert alert-danger">
+                                    <i class="fas fa-exclamation-circle"></i> Invalid username or password.
+                                </div>
+                                {% endif %}
+
+                                <form method="post" action="{% url 'login' %}">
+                                    {% csrf_token %}
+                                    <div class="mb-3">
+                                        <label class="form-label">Username or Email</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input type="text" name="username" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" name="password" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3 form-check">
+                                        <input type="checkbox" class="form-check-input" id="remember">
+                                        <label class="form-check-label" for="remember">Remember me</label>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary w-100 mb-3">
+                                        <i class="fas fa-sign-in-alt me-2"></i> Login
+                                    </button>
+                                    <div class="text-center mb-3">
+                                        <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot password?</a>
+                                    </div>
+                                </form>
+
+                                <div class="social-login">
+                                    <p class="text-center mb-3">Or login with</p>
+                                    <button class="btn social-btn mb-2" style="background-color: #4267B2;">
+                                        <i class="fab fa-facebook"></i> Continue with Facebook
+                                    </button>
+                                    <button class="btn social-btn mb-2" style="background-color: #DB4437;">
+                                        <i class="fab fa-google"></i> Continue with Google
+                                    </button>
+                                </div>
+
+                                <div class="text-center mt-3">
+                                    Don't have an account? 
+                                    <a href="{% url 'PerfectParking:register-user' %}" class="text-decoration-none">Sign up</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
