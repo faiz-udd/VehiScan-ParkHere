@@ -159,17 +159,6 @@ class ParkingLotMonitor(models.Model):
     status = models.BooleanField(default=True)
     """status: True = online, False = offline"""
     image = models.ImageField(upload_to="images/parking-lot-monitor/", blank=True)
-    # last_maintenance = models.DateTimeField(null=True, blank=True)
-    # maintenance_due = models.DateTimeField(null=True, blank=True)
-    # camera_status = models.CharField(
-    #     max_length=20,
-    #     choices=[
-    #         ('ACTIVE', 'Active'),
-    #         ('INACTIVE', 'Inactive'),
-    #         ('MAINTENANCE', 'Under Maintenance')
-    #     ],
-    #     default='ACTIVE'
-    # )
 
     def get_image_url(self):
         """Return image URL or default image if none exists"""

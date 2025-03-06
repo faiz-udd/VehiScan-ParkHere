@@ -11,7 +11,7 @@ from .api.views import (
     NotificationViewSet,
     MobileAppViewSet
 )
-from .admin.views import admin_dashboard
+# from .admin.views import admin_dashboard
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
 from rest_framework import permissions
@@ -71,7 +71,7 @@ urlpatterns = [
     path('monitors/status/', views.monitor_status, name='monitor-status'),
     
     # Admin Dashboard
-    path('admin/dashboard/', admin_dashboard, name='admin-dashboard'),
+    #path('admin/dashboard/', admin_dashboard, name='admin-dashboard'),
     
     # API URLs
     path('api/', include((router.urls, 'api'), namespace='api')),

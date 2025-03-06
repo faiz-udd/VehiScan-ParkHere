@@ -1,8 +1,6 @@
 from django.contrib import admin
-from .models import ParkingLot, ParkingLotMonitor, ParkingSpot, Booking, UserProfile, Payment, Notification
+from .models import ParkingLot, ParkingLotMonitor, ParkingSpot,ParkingLotOwner, Booking, UserProfile, Payment, Notification
 
-admin.site.register(ParkingLot)
-admin.site.register(ParkingLotMonitor)
 
 @admin.register(ParkingLot)
 class ParkingLotAdmin(admin.ModelAdmin):
@@ -38,3 +36,9 @@ class PaymentAdmin(admin.ModelAdmin):
 class NotificationAdmin(admin.ModelAdmin):
     list_display = ('user', 'message', 'created_at', 'read')
     search_fields = ('user__username', 'message')
+
+@admin.register(ParkingLotOwner)
+class ParkingLotOwnerAdmin(admin.ModelAdmin):
+    list_display = ('user', )
+    search_fields = ('user__username',
+                     'parking_lot__name')

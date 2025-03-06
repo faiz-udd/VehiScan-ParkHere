@@ -107,10 +107,10 @@ def parking_lots(request):
         messages.error(request, f"Error loading parking lots: {str(e)}")
         return render(request, 'website/parking-lots.html', {'parking_lots': []})
 
-def parking_lot_monitor(request, parking_lot_monitor_id):
+def parking_lot_monitor(request, id):
     parking_lot_monitor = get_object_or_404(
         ParkingLotMonitor, 
-        pk=parking_lot_monitor_id
+        pk=id
     )
     return render(
         request,

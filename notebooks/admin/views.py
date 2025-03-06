@@ -3,7 +3,7 @@ from django.shortcuts import render
 from django.db.models import Sum, Count
 from django.utils import timezone
 from datetime import timedelta
-from ..models import Booking, ParkingLot, Payment, User
+from .models import Booking, ParkingLot, Payment, User
 
 @staff_member_required
 def admin_dashboard(request):

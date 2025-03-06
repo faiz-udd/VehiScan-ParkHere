@@ -3,6 +3,8 @@ from configparser import ConfigParser
 from requests.auth import HTTPBasicAuth
 import requests
 from cv2 import destroyAllWindows, imshow, imwrite, INTER_CUBIC, Mat, resize, VideoCapture, waitKey
+import json
+from shapely.geometry import Polygon
 
 
 class ParkingMonitorData:
@@ -142,14 +144,14 @@ def create_image_from_video(image_file_path:str, video_connection_string:str) ->
 
     while True:
         is_open:bool = False
-        video_frame:Mat = None
+        video_frame = None
         is_open, video_frame = video_capture.read()
 
         if not is_open:
             print("Unable to video connection")
             break
 
-        display_video_frame:Mat = resize(video_frame, display_dimensions, interpolation = INTER_CUBIC)
+        display_video_frame = resize(video_frame, display_dimensions, interpolation = INTER_CUBIC)
         imshow(window_name, display_video_frame)
 
         if waitKey(1) & 0xFF == ord('s'):
@@ -158,3 +160,22 @@ def create_image_from_video(image_file_path:str, video_connection_string:str) ->
 
     video_capture.release()
     destroyAllWindows()
+
+def load_parking_spaces(config_path: str) -> list:
+    """Load parking space coordinates from a JSON file and convert them to Shapely Polygons.
+
+    Args:
+        config_path (str): The path to the JSON file containing parking space coordinates.
+
+    Returns:
+        list: A list of parking spaces with their coordinates and polygons.
+    """
+    with open(config_path, 'r') as f:
+        data = json.load(f)
+    parking_spaces = data["parking_spaces"]
+    for space in parking_spaces:
+        space["polygon"] = Polygon(space["coordinates"])
+    return parking_spaces
+
+parking_spaces = load_parking_spaces("PerfectParkingClient/parking_config.json")
+occupancy = {space["id"]: False for space in parking_spaces}
