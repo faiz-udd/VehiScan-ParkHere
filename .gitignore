@@ -59,8 +59,5 @@ yolov8n.pt
 # Ignore compiled C extensions
 *.so
 .venv/
-db.sqlite3
 .conda/
-.vscode/
 __pycache__
-migrations/
