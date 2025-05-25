@@ -1,6 +1,0 @@
-*.pyc
-#data/
-.idea/
-
-#For educational purposes only *.ini is not included in the .gitignore file
-#*.ini
