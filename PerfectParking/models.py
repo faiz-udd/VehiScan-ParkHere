@@ -13,7 +13,6 @@ class UserType(models.TextChoices):
     LOT_OWNER = 'lot_owner', _('Parking Lot Owner')
     ADMIN = 'admin', _('Administrator')
 
-
 #User Profile
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -34,7 +33,7 @@ class UserProfile(models.Model):
     
 
     def get_user_type_display(self):
-        return dict(UserType.choices).get(self.user_type, '')
+        return self.get_user_type_display()
     def __str__(self):
         return f"{self.user.username} ({self.get_user_type_display()})"
     
