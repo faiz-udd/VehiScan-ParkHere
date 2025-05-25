@@ -1,0 +1,28 @@
+{% extends 'master.html' %}
+{% block title %}Delete Listing - PerfectParking{% endblock %}
+{% load static %}
+
+{% block main %}
+<div class="container py-5">
+  <div class="row">
+    <div class="col-lg-6 mx-auto">
+      <div class="card shadow border-0">
+        <div class="card-body text-center">
+          <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+          <h2 class="h4 mb-3 text-danger">Delete Parking Listing</h2>
+          <p class="mb-4">Are you sure you want to delete <strong>{{ listing.name }}</strong>? This action cannot be undone.</p>
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger px-4 me-2">
+              <i class="fas fa-trash me-1"></i> Delete
+            </button>
+            <a href="{% url 'view_listing' listing.pk %}" class="btn btn-outline-secondary px-4">
+              Cancel
+            </a>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,11 @@
+
+{% block main %}
+<div class="container">
+    <h2>User Details</h2>
+    <form method="post" action="{% url 'confirm_booking' %}">
+        {% csrf_token %}
+        {{ user_details_form.as_p }}
+        <button type="submit" class="btn btn-primary">Next</button>
+    </form>
+</div>
+{% endblock %}

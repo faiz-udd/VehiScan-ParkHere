@@ -1,0 +1,208 @@
+{% extends 'master.html' %}
+
+{% block title %}Register{% endblock %}
+{% load static %}
+
+{% block main %}
+<div class="container min-vh-100 d-flex align-items-center justify-content-center" style="background-color: #f5f6fa;">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0" style="background-color: #fff;">
+                <div class="row g-0 flex-md-row flex-column">
+                    <!-- Sidebar (short, minimal) -->
+                    <div class="col-md-4 bg-dark text-light d-flex flex-column justify-content-center align-items-center p-4 rounded-start" style="min-width:160px; min-height:160px;">
+                        <h2 class="mb-2 text-center fs-5">Welcome!</h2>
+                        <p class="mb-0 text-center small">Create your account to get started.</p>
+                        <div class="text-center mt-4">
+                            <p>Already have an account?</p>
+                            <a href="{% url 'login' %}" class="btn btn-outline-light">
+                                <i class="fas fa-sign-in-alt me-2"></i> Login
+                            </a>
+                        </div>
+                    </div>
+                    <!-- Registration Form -->
+                    <div class="col-md-8 d-flex align-items-center">
+                        <div class="w-100 p-4">
+                            <!-- Step Indicator -->
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="text-center flex-fill">
+                                    <div class="rounded-circle bg-primary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">1</div>
+                                    <div class="small">Account</div>
+                                </div>
+                                <div class="flex-fill border-top border-2 mx-1" style="border-color:#dee2e6 !important;"></div>
+                                <div class="text-center flex-fill">
+                                    <div class="rounded-circle bg-secondary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">2</div>
+                                    <div class="small">Personal</div>
+                                </div>
+                                <div class="flex-fill border-top border-2 mx-1" style="border-color:#dee2e6 !important;"></div>
+                                <div class="text-center flex-fill">
+                                    <div class="rounded-circle bg-secondary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">3</div>
+                                    <div class="small">Role & Photo</div>
+                                </div>
+                            </div>
+                            <form id="registrationForm" method="post" enctype="multipart/form-data" action="{% url 'register-user' %}">
+                                {% csrf_token %}
+                                <!-- Step 1: Account Information -->
+                                <div class="form-section" id="step1" style="display:block;">
+                                    <h4 class="mb-4">Account Information</h4>
+                                    <div class="mb-3">
+                                        <label class="form-label">Email Address</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                            <input type="email" name="email" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" name="password" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Confirm Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" name="confirm_password" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        <button type="button" class="btn btn-primary px-5 py-1" style="font-size:0.95rem; min-width:180px;" onclick="nextStep(2)">
+                                            <i class="fas fa-arrow-right me-2"></i>Continue
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Step 2: Personal Information -->
+                                <div class="form-section" id="step2" style="display:none;">
+                                    <h4 class="mb-4">Personal Information</h4>
+                                    <div class="row mb-3">
+                                        <div class="col">
+                                            <label class="form-label">First Name</label>
+                                            <input type="text" name="first_name" class="form-control" required>
+                                        </div>
+                                        <div class="col">
+                                            <label class="form-label">Last Name</label>
+                                            <input type="text" name="last_name" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Phone Number</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-phone"></i></span>
+                                            <input type="tel" name="phone" class="form-control" required>
+                                        </div>
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                            <i class="fas fa-arrow-left me-2"></i> Back
+                                        </button>
+                                        <button type="button" class="btn btn-primary px-5 py-1 flex-grow-1" style="font-size:0.95rem; min-width:180px;" onclick="nextStep(3)">
+                                            <i class="fas fa-arrow-right me-2"></i>Continue
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Step 3: Role & Profile Picture -->
+                                <div class="form-section" id="step3" style="display:none;">
+                                    <h4 class="mb-4">Role & Profile Picture</h4>
+                                    <div class="mb-3">
+                                        <label class="form-label">Role</label>
+                                        <select name="user_type" class="form-select" required>
+                                            <option value="" disabled selected>Select your role</option>
+                                            <option value="driver">Driver</option>
+                                            <option value="lot_owner">Parking Lot Owner</option>
+                                            <option value="admin">Admin</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Profile Picture</label>
+                                        <input type="file" name="avatar" class="form-control" accept="image/*">
+                                    </div>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                            <i class="fas fa-arrow-left me-2"></i> Back
+                                        </button>
+                                        <button type="submit" class="btn btn-success flex-grow-1 px-5 py-1" style="font-size:0.95rem; min-width:180px;">
+                                            <i class="fas fa-check me-2"></i>Complete Registration
+                                        </button>
+                                    </div>
+                                </div>
+                            </form>
+                            <!-- Stepper JS -->
+                            <script>
+                                function nextStep(step) {
+                                    if (!validateStep(step - 1)) return;
+                                    document.querySelectorAll('.form-section').forEach(section => {
+                                        section.style.display = 'none';
+                                    });
+                                    document.getElementById(`step${step}`).style.display = 'block';
+                                    let indicators = document.querySelectorAll('.rounded-circle');
+                                    indicators.forEach((el, idx) => {
+                                        if (idx < step) {
+                                            el.classList.remove('bg-secondary');
+                                            el.classList.add('bg-primary');
+                                        } else {
+                                            el.classList.remove('bg-primary');
+                                            el.classList.add('bg-secondary');
+                                        }
+                                    });
+                                }
+                                function prevStep(step) {
+                                    document.querySelectorAll('.form-section').forEach(section => {
+                                        section.style.display = 'none';
+                                    });
+                                    document.getElementById(`step${step}`).style.display = 'block';
+                                    let indicators = document.querySelectorAll('.rounded-circle');
+                                    indicators.forEach((el, idx) => {
+                                        if (idx < step) {
+                                            el.classList.remove('bg-secondary');
+                                            el.classList.add('bg-primary');
+                                        } else {
+                                            el.classList.remove('bg-primary');
+                                            el.classList.add('bg-secondary');
+                                        }
+                                    });
+                                }
+                                function validateStep(step) {
+                                    const section = document.getElementById(`step${step}`);
+                                    const inputs = section.querySelectorAll('input[required], select[required]');
+                                    let valid = true;
+                                    inputs.forEach(input => {
+                                        if (!input.value) {
+                                            input.classList.add('is-invalid');
+                                            valid = false;
+                                        } else {
+                                            input.classList.remove('is-invalid');
+                                        }
+                                    });
+                                    if (step === 1) {
+                                        const password = section.querySelector('input[name="password"]');
+                                        const confirm = section.querySelector('input[name="confirm_password"]');
+                                        if (password.value !== confirm.value) {
+                                            confirm.classList.add('is-invalid');
+                                            valid = false;
+                                        }
+                                    }
+                                    // Profile picture validation (only images)
+                                    if (step === 3) {
+                                        const fileInput = section.querySelector('input[type="file"]');
+                                        if (fileInput && fileInput.value) {
+                                            const file = fileInput.files[0];
+                                            if (file && !file.type.startsWith('image/')) {
+                                                fileInput.classList.add('is-invalid');
+                                                valid = false;
+                                            } else {
+                                                fileInput.classList.remove('is-invalid');
+                                            }
+                                        }
+                                    }
+                                    return valid;
+                                }
+                            </script>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

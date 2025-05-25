@@ -1,0 +1,101 @@
+{% extends 'master.html' %}
+{% load get_distance_from_lat_lang %}
+{% load humanize %}
+{% block title %}Search{% endblock %}
+
+{% block main %}
+<script type="text/javascript">
+    var displayElement = document.getElementById("display");
+    var searchNearMeButton = document.getElementById("search-near-me-button");
+
+    function setPosition() {
+        if (navigator && navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(assignPositionToForm);
+            searchNearMeButton.disabled = false;
+        }
+        else {
+            displayElement.innerHTML = "Geolocation is not supported by this browser.";
+            searchNearMeButton.disabled = true;
+        }
+    }
+    function assignPositionToForm(position) {
+        document.getElementById("latitude").value = position.coords.latitude;
+        document.getElementById("longitude").value = position.coords.longitude;
+    }
+    
+    $(document).ready(documentReady);
+
+    function documentReady() {
+       setPosition();
+    }
+</script>
+
+<div class="container py-4">
+    <h1 class="mb-4 text-center fw-bold">Search Parking Monitors</h1>
+    <form method="post" class="mb-4 d-flex flex-column align-items-center gap-2">
+        {% csrf_token %}
+        <p id="display" class="text-danger"></p>
+        <input type="hidden" name="latitude" id="latitude"/>
+        <input type="hidden" name="longitude" id="longitude"/>
+        <button type="submit" id="search-near-me-button" class="btn btn-primary px-4">
+            <i class="fas fa-map-marker-alt me-2"></i>Search Near Me
+        </button>
+    </form>
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <p id="mydesc" class="fw-semibold mb-3">Parking Monitors</p>
+            <div class="table-responsive">
+                <table class="table table-striped align-middle" aria-describedby="mydesc">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Name</th>
+                            <th>Address</th>
+                            <th>Hours</th>
+                            <th>Is Paid Parking</th>
+                            <th>Vacancy Rate (%)</th>
+                            {% if user_point %}
+                            <th>Distance</th>
+                            {% endif %}
+                            <th>Last Updated</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for parking_monitor in parking_lot_monitors %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="fw-semibold text-decoration-none text-primary">
+                                    {{ parking_monitor.name }}
+                                </a>
+                            </td>
+                            <td>{{ parking_monitor.parkingLot.address }}</td>
+                            <td>{{ parking_monitor.parkingLot.hours }}</td>
+                            <td>
+                                {% if parking_monitor.parkingLot.isPaidParking %}
+                                    <span class="badge bg-warning text-dark">Yes</span>
+                                {% else %}
+                                    <span class="badge bg-success">No</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ parking_monitor.get_vacancy_rate }}%</td>
+                            {% if user_point %}
+                            <td>
+                                <span class="badge bg-info text-dark">
+                                    {% get_distance_from_lat_lang parking_monitor user_point.latitude user_point.longitude %}
+                                </span>
+                            </td>
+                            {% endif %}
+                            <td>
+                                <span class="text-muted small">
+                                    {{ parking_monitor.dateTimeLastUpdated|naturaltime }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

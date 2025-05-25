@@ -1,0 +1,250 @@
+{% extends 'master.html' %}
+{% load static %}
+{%load custom_filters%}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+
+<style>
+.booking-process {
+    background: #f8f9fa;
+    padding: 4rem 0;
+}
+
+.booking-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    padding: 2rem;
+}
+
+.accordion-button:not(.collapsed) {
+    background-color: #f8f9fa;
+    box-shadow: none;
+}
+
+.summary-card {
+    position: sticky;
+    top: 20px;
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="booking-process">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold mb-3">Book {{ parking_lot.name }}</h1>
+                    <div class="d-flex justify-content-center gap-3">
+                        <div class="text-muted">
+                            <i class="fas fa-map-marker-alt me-2"></i>{{ parking_lot.address }}
+                        </div>
+                        <div class="text-muted">
+                            <i class="fas fa-star me-2"></i>{{ parking_lot.average_rating }}/5
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    <div class="col-md-7">
+                        <div class="booking-card">
+                            <form method="post" action="{% url 'book_parking' parking_lot.id %}">
+                                {% csrf_token %}
+                                <div class="accordion" id="bookingSteps">
+                                    <!-- Time Selection -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button {% if current_step != 1 %}collapsed{% endif %}" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#timeSelection" 
+                                                    {% comment %} aria-expanded="{{ current_step == 1|yesno:'true,false' 
+                                                    }}" {% endcomment %}
+                                                    >
+                                                Select Time
+                                            </button>
+                                        </h2>
+                                        <div id="timeSelection" 
+                                             class="accordion-collapse collapse {% if current_step == 1 %}show{% endif %}" 
+                                             data-bs-parent="#bookingSteps">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        {{ time_form.start_time.label_tag }}
+                                                        {{ time_form.start_time }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {{ time_form.end_time.label_tag }}
+                                                        {{ time_form.end_time }}
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <button type="submit" 
+                                                                name="step" 
+                                                                value="1" 
+                                                                class="btn btn-primary">
+                                                            Continue
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- User Details -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button {% if current_step != 2 %}collapsed{% endif %}" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#userDetails" 
+                                                    {% comment %} aria-expanded="{{ current_step == 1|yesno:'true,false' }}" {% endcomment %}
+                                                    >
+                                                User Information
+                                            </button>
+                                        </h2>
+                                        <div id="userDetails" 
+                                             class="accordion-collapse collapse {% if current_step == 2 %}show{% endif %}" 
+                                             data-bs-parent="#bookingSteps">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-md-6">
+                                                        {{ user_form.first_name.label_tag }}
+                                                        {{ user_form.first_name }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {{ user_form.last_name.label_tag }}
+                                                        {{ user_form.last_name }}
+                                                    </div>
+                                                    <div class="col-12">
+                                                        {{ user_form.email.label_tag }}
+                                                        {{ user_form.email }}
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <button type="submit" 
+                                                                name="step" 
+                                                                value="2" 
+                                                                class="btn btn-primary">
+                                                            Continue
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Payment Details -->
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header">
+                                            <button class="accordion-button {% if current_step != 3 %}collapsed{% endif %}" 
+                                                    type="button" 
+                                                    data-bs-toggle="collapse" 
+                                                    data-bs-target="#paymentDetails" 
+                                                    {% comment %} aria-expanded="{{ current_step == 1|yesno:'true,false' }}" {% endcomment %}
+                                                    >
+                                                Payment Information
+                                            </button>
+                                        </h2>
+                                        <div id="paymentDetails" 
+                                             class="accordion-collapse collapse {% if current_step == 3 %}show{% endif %}" 
+                                             data-bs-parent="#bookingSteps">
+                                            <div class="accordion-body">
+                                                <div class="row g-3">
+                                                    <div class="col-12">
+                                                        {{ payment_form.card_number.label_tag }}
+                                                        {{ payment_form.card_number }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {{ payment_form.expiry_date.label_tag }}
+                                                        {{ payment_form.expiry_date }}
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        {{ payment_form.cvc.label_tag }}
+                                                        {{ payment_form.cvc }}
+                                                    </div>
+                                                    <div class="text-end">
+                                                        <button type="submit" 
+                                                                name="step" 
+                                                                value="3" 
+                                                                class="btn btn-success">
+                                                            Confirm Payment
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Summary Section -->
+                    <div class="col-md-5">
+                        <div class="summary-card">
+                            <h4 class="mb-4">Booking Summary</h4>
+                            <div class="card border-0 shadow-sm">
+                                <div class="card-body">
+                                    <div class="price-breakdown">
+                                        {% if booking_data.time_data %}
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span>Start Time:</span>
+                                            <span>{{ booking_data.time_data.start_time }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span>End Time:</span>
+                                            <span>{{ booking_data.time_data.end_time }}</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-3">
+                                            <span>Duration:</span>
+                                            <span id="durationDisplay">{{ duration|default:"0" }} hours</span>
+                                        </div>
+                                        {% endif %}
+                                        <hr>
+                                        <div class="d-flex justify-content-between fw-bold">
+                                            <span>Total:</span>
+                                            <span id="totalPrice">£{{ total_price|default:"0.00" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    flatpickr("input[type=datetime-local]", {
+        enableTime: true,
+        dateFormat: "Y-m-d\\TH:i",
+        minDate: "today"
+    });
+
+    function updatePrice() {
+        const start = document.querySelector('#id_start_time').value;
+        const end = document.querySelector('#id_end_time').value;
+        
+        if(start && end) {
+            const diff = new Date(end) - new Date(start);
+            const hours = Math.ceil(diff / (1000 * 60 * 60));
+            const price = hours * {{ parking_lot.base_price_per_hour }};
+            
+            document.getElementById('durationDisplay').textContent = `${hours} hours`;
+            document.getElementById('totalPrice').textContent = `£${price.toFixed(2)}`;
+        }
+    }
+
+    document.querySelectorAll('input[type=datetime-local]').forEach(input => {
+        input.addEventListener('change', updatePrice);
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: Arial, sans-serif; }
+        .header { text-align: center; margin-bottom: 2rem; }
+        .details { margin: 2rem 0; }
+        .qr-code { text-align: center; margin: 2rem 0; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Parking Receipt</h1>
+        <p>{{ parking_lot.name }} - {{ parking_lot.address }}</p>
+    </div>
+    
+    <div class="details">
+        <p><strong>Booking ID:</strong> {{ booking.id }}</p>
+        <p><strong>Date:</strong> {{ booking.start_time|date:"M d, Y" }}</p>
+        <p><strong>Time:</strong> {{ booking.start_time|time }} - {{ booking.end_time|time }}</p>
+        <p><strong>Total Paid:</strong> £{{ booking.total_price }}</p>
+    </div>
+    
+    <div class="qr-code">
+        <img src="{{ booking.qr_code.url }}" alt="QR Code" style="max-width: 300px;">
+        <p>Scan this QR code at entry/exit</p>
+    </div>
+</body>
+</html>

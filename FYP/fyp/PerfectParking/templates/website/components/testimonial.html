@@ -1,0 +1,98 @@
+{% load static %}
+
+<!-- Testimonial Section Start -->
+<div class="container-xxl py-5">
+    <div class="container py-5">
+        <div class="row g-5">
+            <div class="col-lg-5">
+                <div class="btn btn-sm border rounded-pill text-primary px-3 mb-3">Testimonial</div>
+                <h1 class="mb-4">What Our Clients Say!</h1>
+                <p class="mb-4">Our customers love VehScan! Here’s what they have to say about our reliable parking solutions.</p>
+                <a class="btn btn-primary rounded-pill px-4" href="#">Read More</a>
+            </div>
+            <div class="col-lg-7">
+                <div class="testimonial-carousel">
+                    <div class="testimonial-item active">
+                        <i class="fa fa-quote-left fa-2x text-primary mb-3"></i>
+                        <p class="fs-4">"VehScan makes finding parking so easy! Highly recommended!"</p>
+                        <div class="d-flex align-items-center">
+                            <img class="img-fluid flex-shrink-0 rounded-circle" src="{% static 'img/testimonial-1.jpg' %}" style="width: 60px; height: 60px;">
+                            <div class="ps-3">
+                                <h5 class="mb-1">John Doe</h5>
+                                <span>Car Owner</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-item">
+                        <i class="fa fa-quote-left fa-2x text-primary mb-3"></i>
+                        <p class="fs-4">"No more parking headaches! VehScan finds me the best spots instantly."</p>
+                        <div class="d-flex align-items-center">
+                            <img class="img-fluid flex-shrink-0 rounded-circle" src="{% static 'img/testimonial-2.jpg' %}" style="width: 60px; height: 60px;">
+                            <div class="ps-3">
+                                <h5 class="mb-1">Sarah Williams</h5>
+                                <span>Frequent Driver</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="testimonial-item">
+                        <i class="fa fa-quote-left fa-2x text-primary mb-3"></i>
+                        <p class="fs-4">"Excellent app for parking reservations! Saves me so much time."</p>
+                        <div class="d-flex align-items-center">
+                            <img class="img-fluid flex-shrink-0 rounded-circle" src="{% static 'img/testimonial-3.jpg' %}" style="width: 60px; height: 60px;">
+                            <div class="ps-3">
+                                <h5 class="mb-1">Michael Brown</h5>
+                                <span>Business Owner</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-controls">
+                    <span class="dot active" onclick="goToSlide(0)"></span>
+                    <span class="dot" onclick="goToSlide(1)"></span>
+                    <span class="dot" onclick="goToSlide(2)"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Testimonial Section End -->
+
+<!-- JavaScript for Carousel -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    let index = 0;
+    const items = document.querySelectorAll(".testimonial-item");
+    const dots = document.querySelectorAll(".dot");
+    const totalItems = items.length;
+    let interval;
+
+    function showTestimonial(n) {
+        items.forEach((item, i) => {
+            item.classList.remove("active");
+            dots[i].classList.remove("active");
+        });
+
+        items[n].classList.add("active");
+        dots[n].classList.add("active");
+        index = n;
+    }
+
+    function nextTestimonial() {
+        index = (index + 1) % totalItems;
+        showTestimonial(index);
+    }
+
+    function goToSlide(n) {
+        showTestimonial(n);
+        restartInterval();
+    }
+
+    function restartInterval() {
+        clearInterval(interval);
+        interval = setInterval(nextTestimonial, 5000);
+    }
+
+    // Auto-slide every 5 seconds
+    interval = setInterval(nextTestimonial, 5000);
+});
+</script>

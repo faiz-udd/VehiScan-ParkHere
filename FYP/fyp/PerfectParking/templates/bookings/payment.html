@@ -1,0 +1,11 @@
+
+{% block main %}
+<div class="container">
+    <h2>Payment Details</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ payment_form.as_p }}
+        <button type="submit" class="btn btn-primary">Confirm Payment</button>
+    </form>
+</div>
+{% endblock %}

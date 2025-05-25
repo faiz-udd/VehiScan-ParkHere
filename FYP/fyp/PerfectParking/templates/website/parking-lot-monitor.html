@@ -1,0 +1,72 @@
+{% extends 'master.html' %}
+{% block title %}{{ parking_lot_monitor.name }}{% endblock %}
+
+{% block main %}
+<h1 class="mb-4 text-center fw-bold text-dark">{{ parking_lot_monitor.name }}</h1>
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body">
+                <h2 class="h4 mb-3 text-primary"><i class="fas fa-parking me-2"></i>Parking Details</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-secondary">Free Spaces</dt>
+                    <dd class="col-sm-7 fw-bold text-success fs-5">{{ parking_lot_monitor.free_parking_spaces }}</dd>
+                    <dt class="col-sm-5 text-secondary">Total Spaces</dt>
+                    <dd class="col-sm-7 fw-bold">{{ parking_lot_monitor.parkingLot.parking_spaces }}</dd>
+                    <dt class="col-sm-5 text-secondary">Vacancy Rate (%)</dt>
+                    <dd class="col-sm-7">
+                        <span class="badge bg-info text-dark fs-6">{{ parking_lot_monitor.get_vacancy_rate }}</span>
+                    </dd>
+                    <dt class="col-sm-5 text-secondary">Last Updated</dt>
+                    <dd class="col-sm-7 text-muted small">{{ parking_lot_monitor.dateTimeLastUpdated }}</dd>
+                </dl>
+            </div>
+        </div>
+        <div class="card shadow-sm border-0">
+            <div class="card-body">
+                <h2 class="h4 mt-2 mb-3 text-primary"><i class="fas fa-map-marker-alt me-2"></i>Address Details</h2>
+                <dl class="row mb-0">
+                    <dt class="col-sm-5 text-secondary">Address</dt>
+                    <dd class="col-sm-7 fw-semibold">{{ parking_lot_monitor.parkingLot.address }}</dd>
+                    <dt class="col-sm-5 text-secondary">Hours</dt>
+                    <dd class="col-sm-7">{{ parking_lot_monitor.parkingLot.hours }}</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <h2 class="h4 mb-3 text-primary">Map</h2>
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body p-2">
+                <div class="ratio ratio-4x3 rounded" style="overflow:hidden;">
+                    <iframe title="map"
+                        src="https://maps.google.com/maps?q={{ parking_lot_monitor.latitude }},{{ parking_lot_monitor.longitude }}&z=17&ie=UTF8&output=embed"
+                        style="border:0; width:100%; height:70%;" allowfullscreen="" loading="lazy"></iframe>
+                </div>
+            </div>
+        </div>
+        <h2 class="h4 mb-3 text-primary">Images</h2>
+        {% if parking_lot_monitor.images.all %}
+        <div id="parkingImagesCarousel" class="carousel slide mb-3" data-bs-ride="carousel">
+            <div class="carousel-inner rounded shadow-sm">
+                {% for image in parking_lot_monitor.images.all %}
+                <div class="carousel-item {% if forloop.first %}active{% endif %}">
+                    <img src="{{ image.url }}" class="d-block w-100 rounded" style="max-height:350px; object-fit:cover;" alt="Parking Image {{ forloop.counter }}">
+                </div>
+                {% endfor %}
+            </div>
+            <button class="carousel-control-prev" type="button" data-bs-target="#parkingImagesCarousel" data-bs-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Previous</span>
+            </button>
+            <button class="carousel-control-next" type="button" data-bs-target="#parkingImagesCarousel" data-bs-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="visually-hidden">Next</span>
+            </button>
+        </div>
+        {% else %}
+        <img src="{{ parking_lot_monitor.image.url }}" class="img-fluid rounded shadow-sm" alt="Parking Image"/>
+        {% endif %}
+    </div>
+</div>
+{% endblock main %}

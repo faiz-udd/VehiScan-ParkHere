@@ -1,0 +1,48 @@
+{% extends 'master.html' %}
+{% load static %}
+
+{% block main %}
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-body p-4">
+                    <h3 class="mb-4">Confirm Booking</h3>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <h5>Booking Details</h5>
+                            <p><strong>Parking Lot:</strong> {{ booking.parking_lot.name }}</p>
+                            <p><strong>Duration:</strong> {{ booking.duration|floatformat }} hours</p>
+                            <p><strong>Total:</strong> £{{ booking.total_price }}</p>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <form method="post">
+                                {% csrf_token %}
+                                <h5 class="mb-3">Payment Details</h5>
+                                <div class="mb-3">
+                                    {{ payment_form.card_number.label_tag }}
+                                    {{ payment_form.card_number }}
+                                </div>
+                                <div class="row g-3 mb-3">
+                                    <div class="col-6">
+                                        {{ payment_form.expiry_date.label_tag }}
+                                        {{ payment_form.expiry_date }}
+                                    </div>
+                                    <div class="col-6">
+                                        {{ payment_form.cvc.label_tag }}
+                                        {{ payment_form.cvc }}
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-success w-100">
+                                    Confirm Payment
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

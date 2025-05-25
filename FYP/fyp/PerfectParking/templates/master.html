@@ -1,0 +1,136 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>
+      VehiScan
+    </title>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" integrity="sha512-aVKKRRi/Q/YV+4mjoKBsE4x3H+BkegoM/em46NNlCqNTmUYADjBbeNefNxYV7giUp0VxICtqdrbqU7iVaeZNXA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <!-- JavaScript Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3" crossorigin="anonymous"></script>
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" crossorigin="anonymous" />
+
+    {% comment %} leaflet OpenStreetMap {% endcomment %}
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""/>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/header.css' %}">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    {% block head %}{% endblock %}
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <i class="fas fa-parking me-2"></i><b>VehiScan</b>
+        </a>
+        
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+    
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto align-items-lg-center">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'home' %}">
+                <i class="fas fa-home fa-fw me-1"></i>Home
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'parking-lot-monitors' %}">
+                <i class="fas fa-map-marker-alt fa-fw me-1"></i>Search
+              </a>
+            </li>
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a href="{% url 'account' %}" class="btn btn-outline-light ms-lg-3">
+                <i class="fas fa-user-circle me-2"></i>Account
+              </a>
+            </li>
+            {% if user.parkinglotowner %}
+              <li class="nav-item">
+                <a href="{% url 'register_parking' %}" class="btn btn-success ms-lg-3">
+                  <i class="fas fa-plus-circle me-2"></i>Add Parking
+                </a>
+              </li>
+            {% endif %}
+            {% else %}
+            {% csrf_token %}
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'login' %}">
+                <i class="fas fa-sign-in-alt fa-fw me-1"></i>Sign In
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="btn btn-primary ms-lg-3" href="{% url 'register-user' %}">
+                <i class="fas fa-user-plus me-2"></i>Sign Up
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <main class="container mt-5">
+      {% block main %}
+      {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark mt-5 text-light py-5">
+      <div class="container">
+        <div class="row">
+          <div class="col-md-3">
+            <h5 class="text-uppercase">Company</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light">About Us</a></li>
+              <li><a href="#" class="text-light">Careers</a></li>
+              <li><a href="#" class="text-light">Press</a></li>
+              <li><a href="#" class="text-light">Blog</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-uppercase">Support</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light">Help Center</a></li>
+              <li><a href="#" class="text-light">Contact Us</a></li>
+              <li><a href="#" class="text-light">Privacy Policy</a></li>
+              <li><a href="#" class="text-light">Terms of Service</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-uppercase">Community</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light">Forums</a></li>
+              <li><a href="#" class="text-light">Events</a></li>
+              <li><a href="#" class="text-light">Meetups</a></li>
+              <li><a href="#" class="text-light">Blog</a></li>
+            </ul>
+          </div>
+          <div class="col-md-3">
+            <h5 class="text-uppercase">Follow Us</h5>
+            <ul class="list-unstyled">
+              <li><a href="#" class="text-light"><i class="fab fa-facebook-f me-2"></i>Facebook</a></li>
+              <li><a href="#" class="text-light"><i class="fab fa-twitter me-2"></i>Twitter</a></li>
+              <li><a href="#" class="text-light"><i class="fab fa-instagram me-2"></i>Instagram</a></li>
+              <li><a href="#" class="text-light"><i class="fab fa-linkedin me-2"></i>LinkedIn</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col text-center">
+            <p class="mb-0">&copy; 2025 VehiScan. All rights reserved.</p>
+          </div>
+        </div>
+      </div>
+    </footer>
+
+    {% block scripts %}
+    {% endblock %}
+  </body>
+</html>
