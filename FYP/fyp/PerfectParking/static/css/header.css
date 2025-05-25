@@ -1,0 +1,46 @@
+
+      :root {
+        --primary-color:rgb(9, 94, 80);
+        --secondary-color:rgb(48, 121, 76);
+      }
+      
+      body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0;
+        background-color:rgb(196, 218, 224);
+      }
+
+      .navbar {
+        background-color: var(--primary-color);
+        padding: 1rem;
+      }
+
+      .navbar-brand, .nav-link {
+        color: white !important;
+      }
+
+      .card {
+        transition: transform 0.3s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+
+      .card:hover {
+        transform: translateY(-5px);
+      }
+
+      .footer {
+        background-color: var(--primary-color);
+        color: white;
+        padding: 2rem 0;
+        margin-top: auto;
+      }
+
+      #map {
+        height: 500px;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+      }
+  

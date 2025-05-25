@@ -1,0 +1,85 @@
+<!-- parking/register.html -->
+{% extends 'master.html' %}
+{% block title %}Register Parking Space{% endblock %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card shadow-lg border-0">
+        <div class="card-header bg-primary text-white">
+          <h2 class="h4 mb-0"><i class="fas fa-parking me-2"></i>Register Parking Space</h2>
+        </div>
+        
+        <div class="card-body">
+          {% if form_errors %}
+            <div class="alert alert-danger">
+                <ul class="mb-0">
+                    {% for error in form_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+          {% endif %}
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <div class="row g-4">
+              <!-- Parking Lot Details -->
+              <div class="col-md-6">
+                <h3 class="h5 mb-3"><i class="fas fa-info-circle me-2"></i>Basic Information</h3>
+                {{ form.name|as_crispy_field }}
+                {{ form.address|as_crispy_field }}
+                {{ form.total_spaces|as_crispy_field }}
+                {{ form.max_capacity|as_crispy_field }}
+                {{ form.base_price_per_hour|as_crispy_field }}
+              </div>
+
+              <!-- Location Details -->
+              <div class="col-md-6">
+                <h3 class="h5 mb-3"><i class="fas fa-map-marker-alt me-2"></i>Location</h3>
+                {{ form.latitude|as_crispy_field }}
+                {{ form.longitude|as_crispy_field }}
+                {{ form.image|as_crispy_field }}
+              </div>
+
+              <!-- Monitor Configuration -->
+              <div class="col-12">
+                <div class="border-top pt-4">
+                  <h3 class="h5 mb-3"><i class="fas fa-video me-2"></i>Monitor Configuration</h3>
+                  <div class="row g-3">
+                    <div class="col-md-4">{{ form.monitor_name|as_crispy_field }}</div>
+                    <div class="col-md-4">{{ form.camera_type|as_crispy_field }}</div>
+                    <div class="col-md-4">{{ form.resolution|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.ip_address|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ form.installation_date|as_crispy_field }}</div>
+                    <div class="col-md-3">{{ form.maintenance_due|as_crispy_field }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Additional Details -->
+              <div class="col-12">
+                <div class="border-top pt-4">
+                  <h3 class="h5 mb-3"><i class="fas fa-clock me-2"></i>Operations</h3>
+                  <div class="row g-3">
+                    <div class="col-md-6">{{ form.operating_hours|as_crispy_field }}</div>
+                    <div class="col-md-6">{{ form.amenities|as_crispy_field }}</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary btn-lg w-100">
+                  <i class="fas fa-save me-2"></i>Register Parking Space
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+<!-- filepath: /c:/Users/PMYLS/Downloads/perfect-parking-fyp-master/perfect-parking-fyp-master/PerfectParking/templates/website/checkout.html -->
+{% comment %} {% extends 'master.html' %} {% endcomment %}
+
+{% block main %}
+<div class="container">
+    <h2>Checkout</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ booking_form.as_p }}
+        {{ user_details_form.as_p }}
+        <div id="payment-section">
+            <h3>Payment Details</h3>
+            {{ payment_form.as_p }}
+        </div>
+        <button type="submit" class="btn btn-primary">Confirm Booking</button>
+    </form>
+</div>
+{% endblock %}

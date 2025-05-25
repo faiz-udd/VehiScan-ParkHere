@@ -1,0 +1,200 @@
+{% extends 'master.html' %}
+{% block title %}My Account - Vehiscan{% endblock %}
+{% load static %}
+{% load custom_filters %}
+{% load humanize %}
+
+{% block main %}
+<div class="account-container bg-light">
+  <div class="container-fluid">
+    <div class="row gx-5">
+      <!-- Left Navigation Sidebar -->
+      <div class="col-lg-3 col-xxl-2">
+        <div class="account-sidebar card shadow-sm h-100 rounded-3 bg-dark text-light border-0">
+          <div class="card-body p-4 d-flex flex-column align-items-center">
+            <div class="d-flex flex-column align-items-center mb-4 w-100">
+              <img src="{{ user.profile.avatar|default:'/static/images/default-avatar.png' }}" 
+                   class="rounded-circle mb-2 border border-2 border-light"
+                   width="64" 
+                   height="64"
+                   alt="Profile">
+              <div class="text-center w-100">
+                <h6 class="mb-1 fw-bold text-light">{{ user.get_full_name|default:user.username }}</h6>
+                <small class="text-secondary d-block" style="word-break:break-all;">{{ user.email }}</small>
+              </div>
+            </div>
+            <nav class="nav flex-column gap-2 w-100">
+              {% if user.profile.user_type == 'lot_owner' %}
+              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Space Owner</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'listings' %}active{% endif %} text-light" 
+                 href="?tab=listings">
+                <i class="fas fa-car me-2"></i>My Listings
+              </a>
+              <a class="nav-link py-2 px-3 rounded text-light" href="#">
+                <i class="fas fa-chart-line me-2"></i>Performance
+              </a>
+              {% elif user.profile.user_type == 'driver' %}
+              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Driver</div>
+              <!-- Booking links removed -->
+              {% else %}
+              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Admin</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'analytics' %}active{% endif %} text-light" 
+                 href="#?tab=analytics">
+                <i class="fas fa-chart-line me-2"></i>Analytics</a>
+              {% endif %}
+            
+              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Account</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'profile' %}active{% endif %} text-light" href="{% url 'account_settings' %}">
+                <i class="fas fa-user-cog me-2"></i>Profile Settings
+              </a>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'security' %}active{% endif %} text-light" href="{% url 'security_settings' %}">
+                <i class="fas fa-shield-alt me-2"></i>Security Settings
+              </a>
+              
+              <div class="dropdown-divider my-3 bg-secondary"></div>
+              
+              <a class="nav-link py-2 px-3 rounded text-danger" href="{% url 'logout' %}">
+                <i class="fas fa-sign-out-alt me-2"></i>Log Out
+              </a>
+            </nav>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content (Scrollable) -->
+      <div class="col-lg-9 col-xxl-10" style="max-height: 90vh; overflow-y: auto;">
+        <div class="account-main-content p-4">
+          {% if user.profile.user_type == 'lot_owner' %}
+            <!-- Space Owner Content -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="h4 mb-0 fw-bold">My Listings</h2>
+              <a href="{% url 'create_listing' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Space
+              </a>
+            </div>
+
+            {% if active_listings %}
+            <div class="row g-4">
+              {% for listing in active_listings %}
+              <div class="col-md-6 col-xl-4">
+                <div class="card shadow-sm h-100">
+                  <img src="{{ listing.get_image_url }}" class="card-img-top listing-image" alt="{{ listing.name }}">
+                  <div class="card-body">
+                    <h5 class="card-title fw-bold">{{ listing.name }}</h5>
+                    <p class="text-muted mb-2">
+                      <i class="fas fa-map-marker-alt me-2"></i>
+                      {{ listing.address|truncatechars:30 }}
+                    </p>
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <span class="badge bg-success">Active</span>
+                        <div class="mt-2">
+                          <span class="h5">£{{ listing.base_price_per_hour }}</span>
+                          <span class="text-muted">/hour</span>
+                        </div>
+                      </div>
+                      <div class="dropdown">
+                        <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                          <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                          <li>
+                            <a class="dropdown-item" href="{% url 'edit_listing' listing.pk %}">
+                              <i class="fas fa-edit me-2"></i>Edit
+                            </a>
+                          </li>
+                          <!-- <li>
+                            <a class="dropdown-item" href="{% url 'view_listing' listing.pk %}">
+                              <i class="fas fa-eye me-2"></i>View
+                            </a>
+                          </li> -->
+                          <li><hr class="dropdown-divider"></li>
+                          <li>
+                            <a class="dropdown-item text-danger" href="{% url 'delete_listing' listing.pk %}">
+                              <i class="fas fa-trash me-2"></i>Delete
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="text-center py-5">
+              <div class="mb-4">
+                <i class="fas fa-car fa-3x text-muted"></i>
+              </div>
+              <h3 class="h5 mb-3">No Active Listings</h3>
+              <p class="text-muted mb-4">Start earning money by listing your parking space</p>
+              <a href="{% url 'create_listing' %}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>List Your Space
+              </a>
+            </div>
+            {% endif %}
+
+          {% else %}
+            <!-- No driver content, bookings and payments removed -->
+            <div class="text-center py-5">
+              <div class="mb-4">
+                <i class="fas fa-info-circle fa-3x text-muted"></i>
+              </div>
+              <h3 class="h5 mb-3">No Content Available</h3>
+              <p class="text-muted mb-4">You do not have any listings or content to display.</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+<style>
+    .account-sidebar {
+      min-height: 90vh;
+      background: #212529 !important;
+      color: #f8f9fa !important;
+      border-right: 1px solid #343a40 !important;
+    }
+    .account-sidebar .nav-link {
+      color: #f8f9fa !important;
+      padding: 0.75rem 1.5rem;
+      margin: 0.25rem 0;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      font-weight: 500;
+    }
+    .account-sidebar .nav-link.active {
+      background: #0d6efd !important;
+      color: #fff !important;
+      font-weight: 600;
+      border-left: 4px solid #0d6efd;
+    }
+    .account-sidebar .nav-link:hover {
+      background: #343a40 !important;
+      color: #fff !important;
+    }
+    .account-sidebar .nav-link i {
+      width: 24px;
+      text-align: center;
+      margin-right: 12px;
+      font-size: 1.1rem;
+    }
+    .account-sidebar .text-uppercase {
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+      color: #adb5bd !important;
+      margin-top: 1.5rem;
+      margin-bottom: 0.5rem;
+      padding-left: 1.5rem;
+    }
+    .account-sidebar .dropdown-divider {
+      margin: 1.5rem 0;
+      background: #495057;
+    }
+</style>

@@ -1,0 +1,80 @@
+<!-- account/settings.html -->
+{% extends 'master.html' %}
+{% block title %}Profile Settings - PerfectParking{% endblock %}
+{% load static %}
+
+{% block main %}
+<div class="container py-5">
+  <div class="row gx-5">
+    <!-- Sidebar -->
+    <div class="col-lg-3 col-xxl-2">
+      <div class="account-sidebar card shadow-sm h-100 rounded-3 bg-dark text-light border-0">
+        <div class="card-body p-4 d-flex flex-column align-items-center">
+          <div class="d-flex flex-column align-items-center mb-4 w-100">
+            <img src="{% if user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}/static/images/default-avatar.png{% endif %}" 
+                 class="rounded-circle mb-2 border border-2 border-light"
+                 width="64" height="64" alt="Profile">
+            <div class="text-center w-100">
+              <h6 class="mb-1 fw-bold text-light">{{ user.get_full_name|default:user.username }}</h6>
+              <small class="text-secondary d-block" style="word-break:break-all;">{{ user.email }}</small>
+            </div>
+          </div>
+          <nav class="nav flex-column gap-2 w-100">
+            <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Account</div>
+            <a class="nav-link py-2 px-3 rounded active text-light" href="{% url 'account_settings' %}">
+              <i class="fas fa-user-cog me-2"></i>Profile Settings
+            </a>
+            <a class="nav-link py-2 px-3 rounded text-light" href="{% url 'security_settings' %}">
+              <i class="fas fa-shield-alt me-2"></i>Security Settings
+            </a>
+            <div class="dropdown-divider my-3 bg-secondary"></div>
+            <a class="nav-link py-2 px-3 rounded text-danger" href="{% url 'logout' %}">
+              <i class="fas fa-sign-out-alt me-2"></i>Log Out
+            </a>
+          </nav>
+        </div>
+      </div>
+    </div>
+    <!-- Main Content -->
+    <div class="col-lg-9 col-xxl-10">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h2 class="h4 mb-4 text-primary fw-bold">Profile Settings</h2>
+          <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-4">
+              <div class="col-md-6">
+                <label for="id_first_name" class="form-label fw-semibold">First Name</label>
+                {{ user_form.first_name }}
+              </div>
+              <div class="col-md-6">
+                <label for="id_last_name" class="form-label fw-semibold">Last Name</label>
+                {{ user_form.last_name }}
+              </div>
+              <div class="col-12">
+                <label for="id_email" class="form-label fw-semibold">Email</label>
+                {{ user_form.email }}
+              </div>
+              <div class="col-12">
+                <label for="id_avatar" class="form-label fw-semibold">Photo</label>
+                {{ profile_form.avatar }}
+                {% if profile_form.avatar.help_text %}
+                  <div class="form-text">{{ profile_form.avatar.help_text }}</div>
+                {% endif %}
+                {% for error in profile_form.avatar.errors %}
+                  <div class="text-danger small">{{ error }}</div>
+                {% endfor %}
+              </div>
+              <div class="col-12">
+                <button type="submit" class="btn btn-primary px-4">
+                  Save Changes
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

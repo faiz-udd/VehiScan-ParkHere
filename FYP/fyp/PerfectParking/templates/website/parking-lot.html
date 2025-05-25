@@ -1,0 +1,112 @@
+{% extends 'master.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+{% endblock %}
+
+{% block main %}
+<div class="parking-hero bg-dark text-light py-5 rounded-3">
+    <div class="container position-relative z-index-2">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item">
+                    <a href="{% url 'parking-lots' %}">Parking Lots</a>
+                </li>
+                <li class="breadcrumb-item active text-white">{{ parking_lot.name }}</li>
+            </ol>
+        </nav>
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-6 fw-bold mb-3 animate__animated animate__fadeInDown">
+                    {{ parking_lot.name }}
+                </h1>
+                <div class="d-flex flex-wrap gap-3 mb-4">
+                    <div class="last-updated-badge animate__animated animate__fadeIn">
+                        <i class="fas fa-sync me-2"></i>
+                        Updated {{ parking_lot.get_date_time_last_updated|timesince }} ago
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5">
+
+
+    <div class="row g-5">
+        <!-- Main Content -->
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-6 animate__animated animate__fadeInLeft">
+                <div class="card stat-card h-100 border-0">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4 fw-bold"><i class="fas fa-parking me-2"></i>Availability</h4>
+                        <div class="detail-item mb-3">
+                            <h5 class="fw-bold mb-2">Available Spaces</h5>
+                            <p class="mb-0 text-dark fs-4">{{ parking_lot.get_free_parking_spaces }}</p>
+                            <small class="text-muted">Total: {{ parking_lot.parking_spaces }} spaces</small>
+                        </div>
+                        <div class="detail-item mb-3">
+                            <h5 class="fw-bold mb-2">Vacancy Rate</h5>
+                            <p class="mb-0 text-muted">{{ parking_lot.get_probability_parking_available }}% Vacancy</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6 animate__animated animate__fadeInRight">
+                <div class="card stat-card h-100 border-0">
+                    <div class="card-body p-4">
+                        <h4 class="mb-4 fw-bold"><i class="fas fa-clock me-2"></i>Operating Hours</h4>
+                        <div class="detail-item">
+                            <h5 class="fw-bold mb-2">Open Daily</h5>
+                            <p class="mb-0 text-muted">{{ parking_lot.hours }}</p>
+                        </div>
+                        <div class="detail-item">
+                            <h5 class="fw-bold mb-2">Address</h5>
+                            <p class="mb-0 text-muted">{{ parking_lot.address }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="card stat-card border-0 mb-4 animate__animated animate__fadeInUp">
+                <h3 class="card-header bg-light justify-content-center fw-bold">
+                    <i class="fas fa-info-circle me-2"></i>Click Direction to Get Map
+                </h3>
+                <div class="card-body p-4">
+                    <div class="gmap-container">
+                        <iframe class="gmap-iframe" style="width: 41rem; height:25rem;" src="https://maps.google.com/maps?q={{parking_lot.latitude}},{{parking_lot.longitude}}&z=17&output=embed&layer=streetview&mode=streetview"></iframe>
+                    </div>
+                </div>
+            </div>
+  
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add intersection observers for scroll animations
+    document.addEventListener('DOMContentLoaded', function() {
+        const elements = document.querySelectorAll('.animate__animated');
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = 1;
+                }
+            });
+        }, { threshold: 0.1 });
+        elements.forEach(element => {
+            element.style.opacity = 0;
+            observer.observe(element);
+        });
+    });
+</script>
+{% endblock %}

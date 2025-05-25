@@ -1,0 +1,66 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Django migrations
+migrations/
+*.sqlite3
+
+# Environment variables
+.env
+*.env
+
+# IDE/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Test and coverage files
+.coverage
+htmlcov/
+*.cover
+
+# Jupyter Notebook checkpoints
+.ipynb_checkpoints
+
+# Media/uploads
+media/
+uploads/
+
+# Large model/data files
+*.pt
+*.h5
+*.ckpt
+*.weights
+
+# Git LFS pointers (if not using LFS)
+*.lfs
+
+# Local settings
+local_settings.py
+
+# Backup files
+*.bak
+*.tmp
+
+# Ignore yolov8x.pt specifically
+yolov8x.pt
+yolov8n.pt
+
+# Ignore compiled C extensions
+*.so
+.venv/
+db.sqlite3
+.conda/
+.vscode/
+__pycache__
+migrations/

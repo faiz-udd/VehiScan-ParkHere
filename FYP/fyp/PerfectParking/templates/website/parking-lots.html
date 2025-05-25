@@ -1,0 +1,125 @@
+{% extends 'master.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid">
+    <div class="row">
+        <!-- Map Column -->
+        <div class="col-lg-7 p-0">
+            <div id="map" class="w-100" style="height: 100vh; position: sticky; top: 0; z-index: 1;"></div>
+        </div>
+
+        <!-- Listings Column -->
+        <div class="col-lg-5 bg-light" style="height: 100vh; overflow-y: auto;">
+            <div class="d-flex justify-content-between align-items-center mb-4 pt-4 px-3">
+                <h3 class="mb-0">
+                    <i class="fas fa-map-marker-alt text-primary"></i> 
+                    Parking near {{ location }}
+                </h3>
+                <form class="input-group w-auto" method="get" action="">
+                    <input type="hidden" name="location" value="{{ location }}">
+                    <input type="text" class="form-control" placeholder="Search listings..." id="searchInput" name="search" value="{{ request.GET.search }}">
+                    <button class="btn btn-outline-secondary" type="submit">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </form>
+            </div>
+
+            <!-- Parking Listings -->
+            <div class="row g-3 px-3" id="parkingListings">
+                {% for lot in parking_lots %}
+                <div class="col-12 mb-2">
+                    <div class="card shadow-sm border-0 parking-lot-card">
+                        <div class="row g-0">
+                            <div class="col-md-4 position-relative">
+                                <img src="{{ lot.get_image_url }}" class="img-fluid rounded-start" 
+                                     alt="{{ lot.name }}" style="height: 150px; object-fit: cover;">
+                                <span class="badge bg-primary position-absolute top-0 start-0 m-2">
+                                    PKR {{ lot.base_price_per_hour }}/h
+                                </span>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="card-body py-2">
+                                    <h5 class="card-title mb-1 text-primary">{{ lot.name }}</h5>
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        <span class="text-muted small">
+                                            {{ lot.distance|floatformat:1 }}km away
+                                        </span>
+                                    </div>
+                                    <p class="card-text small text-muted mb-2">
+                                        <i class="fas fa-map-marker-alt text-primary"></i> 
+                                        {{ lot.address|truncatechars:40 }}
+                                    </p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            {% if lot.get_free_parking_spaces > 0 %}
+                                            <span class="badge bg-success">
+                                                {{ lot.get_free_parking_spaces }} spaces
+                                            </span>
+                                            {% else %}
+                                            <span class="badge bg-danger">Full</span>
+                                            {% endif %}
+                                        </div>
+                                        <a href="{% url 'parking-lot-detail' lot.id %}" 
+                                           class="btn btn-primary btn-sm">
+                                            View Details
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    No parking spaces found in this area. Try expanding your search.
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+// Map initialization
+const map = L.map('map').setView({{ search_coords }}, 12);
+
+// Add OpenStreetMap tiles
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// Add search area circle
+L.circle({{ search_coords }}, {
+    color: '#007bff',
+    fillColor: '#007bff',
+    fillOpacity: 0.1,
+    radius: 5000 // 1km radius
+}).addTo(map);
+
+// Add parking lot markers (default Leaflet icon)
+{% for lot in parking_lots %}
+L.marker([{{ lot.latitude }}, {{ lot.longitude }}])
+    .bindPopup(`<b>{{ lot.name|escapejs }}</b><br>{{ lot.address|escapejs }}`)
+    .addTo(map);
+{% endfor %}
+
+// Search functionality
+document.getElementById('searchInput').addEventListener('input', function(e) {
+    const searchTerm = e.target.value.toLowerCase();
+    document.querySelectorAll('.parking-lot-card').forEach(card => {
+        const title = card.querySelector('.card-title').textContent.toLowerCase();
+        const address = card.querySelector('.card-text').textContent.toLowerCase();
+        card.parentElement.style.display = (title.includes(searchTerm) || address.includes(searchTerm)) ? '' : 'none';
+    });
+});
+</script>
+{% endblock %}

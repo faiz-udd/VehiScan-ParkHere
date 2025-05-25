@@ -1,0 +1,73 @@
+{% extends 'master.html' %}
+
+{% block title %}Login{% endblock %}
+{% load static %}
+
+{% block main %}
+<div class="container min-vh-100 d-flex align-items-center justify-content-center" style="background-color: #f5f6fa;">
+    <div class="row w-100 justify-content-center">
+        <div class="col-md-7 col-lg-6">
+            <div class="card shadow-sm border-0" style="background-color: #fff;">
+                <div class="row g-0 flex-md-row flex-column">
+                    <div class="col-md-5 bg-dark text-light d-flex flex-column justify-content-center align-items-center p-4 rounded-start" style="min-width:180px;">
+                        <h2 class="mb-3 text-center fs-4">Welcome Back!</h2>
+                        <p class="mb-3 text-center small">Log in to access your account and manage your parking reservations.</p>
+                        <div class="d-none d-md-block w-100">
+                            <h5 class="mb-2 text-center">Benefits:</h5>
+                            <ul class="list-unstyled small">
+                                <li class="mb-2"><i class="fas fa-check-circle me-2"></i>Quick booking process</li>
+                                <li class="mb-2"><i class="fas fa-check-circle me-2"></i>View booking history</li>
+                                <li class="mb-2"><i class="fas fa-check-circle me-2"></i>Save favorite spots</li>
+                                <li class="mb-2"><i class="fas fa-check-circle me-2"></i>Special member rates</li>
+                            </ul>
+                        </div>
+                    </div>
+                    <div class="col-md-7 d-flex align-items-center">
+                        <div class="w-100 p-4">
+                            <h3 class="mb-3 text-center">Login</h3>
+                            {% if form.errors %}
+                            <div class="alert alert-danger">
+                                <i class="fas fa-exclamation-circle"></i> Invalid username or password.
+                            </div>
+                            {% endif %}
+                            <form method="post" action="{% url 'login' %}">
+                                {% csrf_token %}
+                                <div class="mb-2">
+                                    <label class="form-label">Username or Email</label>
+                                    <div class="input-group justify-content-center">
+                                        <span class="input-group-text" style="height:32px;"><i class="fas fa-user"></i></span>
+                                        <input type="text" name="username" class="form-control" style="max-width:220px; height:32px; font-size:0.95rem;" required>
+                                    </div>
+                                </div>
+                                <div class="mb-2">
+                                    <label class="form-label">Password</label>
+                                    <div class="input-group justify-content-center">
+                                        <span class="input-group-text" style="height:32px;"><i class="fas fa-lock"></i></span>
+                                        <input type="password" name="password" class="form-control" style="max-width:220px; height:32px; font-size:0.95rem;" required>
+                                    </div>
+                                </div>
+                                <div class="mb-2 form-check d-flex justify-content-center">
+                                    <input type="checkbox" class="form-check-input" id="remember" style="height:16px; width:16px;">
+                                    <label class="form-check-label ms-2" for="remember" style="font-size:0.95rem;">Remember me</label>
+                                </div>
+                                <div class="d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-primary px-5 py-1" style="font-size:0.95rem; min-width:180px;">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                                    </button>
+                                </div>
+                                <div class="text-center mb-2 mt-2">
+                                    <a href="{% url 'password_reset' %}" class="text-decoration-none">Forgot password?</a>
+                                </div>
+                            </form>
+                            <div class="text-center mt-3">
+                                Don't have an account? 
+                                <a href="{% url 'register-user' %}" class="text-decoration-none">Sign up</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
