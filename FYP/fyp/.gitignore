@@ -392,3 +392,6 @@ $RECYCLE.BIN/
 PerfectParking/migrations/*
 local.cmd
 
+yolov8x.pt
+yolov8n.pt
+
