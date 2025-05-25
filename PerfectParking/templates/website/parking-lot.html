@@ -1,0 +1,210 @@
+{% extends 'master.html' %}
+{% load custom_filters %}
+{% block title %}{{ parking_lot.name }}{% endblock %}
+
+{% block head %}
+<style>
+  .feature-icon {
+    font-size: 2rem;
+    color: var(--primary-color);
+  }
+  
+  .availability-chart {
+    max-width: 400px;
+    margin: 0 auto;
+  }
+  
+  .price-card {
+    border-radius: 15px;
+    border: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+  }
+
+  #map {
+    width: 100%;
+    height: 400px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .availability-chart-container {
+    height: 300px;  /* Fixed height for the container */
+    position: relative;
+    margin-bottom: 1rem;
+  }
+
+  .chart-card {
+    height: 350px;  /* Fixed height for the card */
+  }
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'PerfectParking:parking-lots' %}">Parking Lots</a></li>
+      <li class="breadcrumb-item active">{{ parking_lot.name }}</li>
+    </ol>
+  </nav>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-body">
+          <h1 class="card-title">{{ parking_lot.name }}</h1>
+          <div class="d-flex align-items-center mb-3">
+            <i class="fas fa-map-marker-alt text-primary me-2"></i>
+            <span>{{ parking_lot.address }}</span>
+          </div>
+          
+          <div class="row mb-4">
+            <div class="col-md-4 text-center">
+              <div class="feature-icon mb-2">
+                <i class="fas fa-car"></i>
+              </div>
+              <h5>Available Spots</h5>
+              <p class="h3 text-success">{{ parking_lot.available_spaces }}/{{ parking_lot.total_spaces }}</p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="feature-icon mb-2">
+                <i class="fas fa-clock"></i>
+              </div>
+              <h5>Hours</h5>
+              <p>{{ parking_lot.hours|default:"24/7" }}</p>
+            </div>
+            <div class="col-md-4 text-center">
+              <div class="feature-icon mb-2">
+                <i class="fas fa-dollar-sign"></i>
+              </div>
+              <h5>Price</h5>
+              <p>${{ parking_lot.base_price_per_hour }}/hour</p>
+            </div>
+          </div>
+
+          <div id="map"></div>
+
+          <div class="row">
+            <div class="col-md-6">
+              <div class="card price-card bg-primary text-white">
+                <div class="card-body">
+                  <h5 class="card-title">Standard Rate</h5>
+                  <p class="display-4">${{ parking_lot.base_price_per_hour }}</p>
+                  <p>per hour</p>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="card price-card bg-info text-white">
+                <div class="card-body">
+                  <h5 class="card-title">Daily Rate</h5>
+                  <p class="display-4">${{ parking_lot.base_price_per_hour|multiply:8 }}</p>
+                  <p>per day</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add real-time occupancy indicator -->
+          <div class="occupancy-indicator">
+            <div class="progress">
+              <div class="progress-bar" 
+                   role="progressbar" 
+                   style="width: {{ parking_lot.get_occupancy_percentage }}%"
+                   aria-valuenow="{{ parking_lot.get_occupancy_percentage }}" 
+                   aria-valuemin="0" 
+                   aria-valuemax="100">
+                {{ parking_lot.get_occupancy_percentage }}% Full
+              </div>
+            </div>
+          </div>
+
+          <!-- Add operating hours -->
+          <div class="operating-hours">
+            <h4>Operating Hours</h4>
+            {% for day, hours in parking_lot.operating_hours.items %}
+            <div class="day-hours">
+              <span class="day">{{ day }}</span>
+              <span class="hours">{{ hours }}</span>
+            </div>
+            {% endfor %}
+          </div>
+
+          <!-- Add amenities list -->
+          <div class="amenities">
+            <h4>Amenities</h4>
+            <ul class="amenities-list">
+              {% for amenity in parking_lot.amenities %}
+              <li><i class="fas fa-{{ amenity.icon }}"></i> {{ amenity.name }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4 chart-card">
+        <div class="card-body">
+          <h5 class="card-title">Real-time Availability</h5>
+          <div class="availability-chart-container">
+            <canvas id="availabilityChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Features</h5>
+          <ul class="list-unstyled">
+            <li class="mb-2"><i class="fas fa-video text-success me-2"></i> 24/7 Surveillance</li>
+            <li class="mb-2"><i class="fas fa-lightbulb text-success me-2"></i> Well-lit</li>
+            <li class="mb-2"><i class="fas fa-wheelchair text-success me-2"></i> Accessible</li>
+            <li class="mb-2"><i class="fas fa-shield-alt text-success me-2"></i> Security Guard</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+mapboxgl.accessToken = 'your_mapbox_token';
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/mapbox/streets-v11',
+  center: [{{ parking_lot.longitude }}, {{ parking_lot.latitude }}],
+  zoom: 15
+});
+
+new mapboxgl.Marker()
+  .setLngLat([{{ parking_lot.longitude }}, {{ parking_lot.latitude }}])
+  .addTo(map);
+
+const ctx = document.getElementById('availabilityChart').getContext('2d');
+new Chart(ctx, {
+  type: 'doughnut',
+  data: {
+    labels: ['Available', 'Occupied'],
+    datasets: [{
+      data: [{{ parking_lot.available_spaces }}, {{ parking_lot.total_spaces|subtract:parking_lot.available_spaces }}],
+      backgroundColor: ['#28a745', '#dc3545']
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        position: 'bottom'
+      }
+    },
+    layout: {
+      padding: 20
+    }
+  }
+});
+</script>
+{% endblock %}

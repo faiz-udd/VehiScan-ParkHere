@@ -1,0 +1,272 @@
+{% extends 'master.html' %}
+{% block title %}Search Parking{% endblock %}
+
+{% block head %}
+<style>
+.search-wrapper {
+    background: linear-gradient(135deg, #f5f7fa, #c3cfe2);
+    padding: 40px 0;
+}
+
+.filter-card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.map-container {
+    height: calc(100vh - 200px);
+    position: sticky;
+    top: 20px;
+}
+
+.result-card {
+    transition: transform 0.3s, box-shadow 0.3s;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.result-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.price-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: rgba(255,255,255,0.9);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.availability-indicator {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+
+.available {
+    background-color: #28a745;
+}
+
+.limited {
+    background-color: #ffc107;
+}
+
+.full {
+    background-color: #dc3545;
+}
+
+.range-slider {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 5px;
+    border-radius: 5px;
+    background: #ddd;
+    outline: none;
+}
+
+.range-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--primary-color);
+    cursor: pointer;
+}
+</style>
+{% endblock %}
+
+{% block main %}
+<div class="search-wrapper">
+    <div class="container">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <div class="col-md-3">
+                <div class="card filter-card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title mb-4">Filters</h5>
+                        <form id="filterForm">
+                            <!-- Price Range -->
+                            <div class="mb-4">
+                                <label class="form-label">Price Range</label>
+                                <input type="range" class="range-slider" id="priceRange" min="0" max="50" step="5">
+                                <div class="d-flex justify-content-between mt-2">
+                                    <span>$0</span>
+                                    <span id="priceValue">$25</span>
+                                    <span>$50</span>
+                                </div>
+                            </div>
+
+                            <!-- Distance -->
+                            <div class="mb-4">
+                                <label class="form-label">Distance</label>
+                                <select class="form-select">
+                                    <option>Within 1 km</option>
+                                    <option>Within 2 km</option>
+                                    <option>Within 5 km</option>
+                                    <option>Any distance</option>
+                                </select>
+                            </div>
+
+                            <!-- Features -->
+                            <div class="mb-4">
+                                <label class="form-label">Features</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="covered">
+                                    <label class="form-check-label" for="covered">Covered Parking</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="security">
+                                    <label class="form-check-label" for="security">24/7 Security</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="ev">
+                                    <label class="form-check-label" for="ev">EV Charging</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="handicap">
+                                    <label class="form-check-label" for="handicap">Handicap Accessible</label>
+                                </div>
+                            </div>
+
+                            <!-- Availability -->
+                            <div class="mb-4">
+                                <label class="form-label">Availability</label>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="availability" id="any" checked>
+                                    <label class="form-check-label" for="any">Any</label>
+                                </div>
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="radio" name="availability" id="available">
+                                    <label class="form-check-label" for="available">Available Now</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="availability" id="reserved">
+                                    <label class="form-check-label" for="reserved">Reserve for Later</label>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-filter me-2"></i> Apply Filters
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results -->
+            <div class="col-md-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Search Results</h4>
+                    <div class="dropdown">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                            Sort by
+                        </button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Price: Low to High</a></li>
+                            <li><a class="dropdown-item" href="#">Price: High to Low</a></li>
+                            <li><a class="dropdown-item" href="#">Distance</a></li>
+                            <li><a class="dropdown-item" href="#">Availability</a></li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Results List -->
+                {% for lot in parking_lots %}
+                <div class="card result-card mb-3">
+                    <div class="row g-0">
+                        <div class="col-md-4">
+                            <img src="{{ lot.get_image_url }}" class="img-fluid h-100" style="object-fit: cover;" alt="{{ lot.name }}">
+                            <span class="price-badge">${{ lot.base_price_per_hour }}/hr</span>
+                        </div>
+                        <div class="col-md-8">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <h5 class="card-title mb-1">{{ lot.name }}</h5>
+                                    <button class="btn btn-link btn-sm p-0">
+                                        <i class="far fa-heart"></i>
+                                    </button>
+                                </div>
+                                <p class="card-text text-muted small mb-2">
+                                    <i class="fas fa-map-marker-alt me-1"></i> {{ lot.address }}
+                                </p>
+                                <div class="mb-2">
+                                    <span class="availability-indicator {% if lot.available_spaces > lot.total_spaces|multiply:0.3 %}available{% elif lot.available_spaces > 0 %}limited{% else %}full{% endif %}"></span>
+                                    {{ lot.available_spaces }}/{{ lot.total_spaces }} spots available
+                                </div>
+                                <div class="d-flex justify-content-between align-items-center mt-3">
+                                    <div class="features">
+                                        {% if lot.has_security %}<i class="fas fa-shield-alt me-2" title="24/7 Security"></i>{% endif %}
+                                        {% if lot.has_ev_charging %}<i class="fas fa-charging-station me-2" title="EV Charging"></i>{% endif %}
+                                        {% if lot.is_covered %}<i class="fas fa-warehouse me-2" title="Covered Parking"></i>{% endif %}
+                                    </div>
+                                    <a href="{% url 'parking_lot_detail' lot.id %}" class="btn btn-primary btn-sm">
+                                        View Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i> No parking lots match your criteria
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Map View -->
+            <div class="col-md-4">
+                <div class="card filter-card map-container">
+                    <div id="map"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block scripts %}
+<script>
+// Initialize map
+mapboxgl.accessToken = 'your_mapbox_token';
+const map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/streets-v11',
+    center: [-74.006, 40.7128], // Default to NYC
+    zoom: 12
+});
+
+// Price range slider
+const priceRange = document.getElementById('priceRange');
+const priceValue = document.getElementById('priceValue');
+priceRange.addEventListener('input', (e) => {
+    priceValue.textContent = `$${e.target.value}`;
+});
+
+// Add markers for each parking lot
+{% for lot in parking_lots %}
+new mapboxgl.Marker()
+    .setLngLat([{{ lot.longitude }}, {{ lot.latitude }}])
+    .setPopup(new mapboxgl.Popup().setHTML(`
+        <h6>{{ lot.name }}</h6>
+        <p>${{ lot.base_price_per_hour }}/hr</p>
+        <a href="{% url 'parking_lot_detail' lot.id %}" class="btn btn-primary btn-sm">View</a>
+    `))
+    .addTo(map);
+{% endfor %}
+
+// Filter form submission
+document.getElementById('filterForm').addEventListener('submit', (e) => {
+    e.preventDefault();
+    // Add your filter logic here
+});
+</script>
+{% endblock %}
+{% endblock %} 

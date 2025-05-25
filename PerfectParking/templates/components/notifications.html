@@ -1,0 +1,47 @@
+{% load static %}
+
+<div class="notification-center">
+    <div class="notification-header">
+        <h5>Notifications</h5>
+        <button class="btn btn-link" onclick="markAllAsRead()">
+            Mark all as read
+        </button>
+    </div>
+    
+    <div class="notification-list" id="notificationList">
+        {% for notification in notifications %}
+        <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+             data-notification-id="{{ notification.id }}">
+            <div class="notification-icon">
+                {% if notification.type == 'BOOKING_CONFIRMATION' %}
+                    <i class="fas fa-check-circle text-success"></i>
+                {% elif notification.type == 'PARKING_REMINDER' %}
+                    <i class="fas fa-clock text-warning"></i>
+                {% elif notification.type == 'PAYMENT_SUCCESS' %}
+                    <i class="fas fa-dollar-sign text-success"></i>
+                {% elif notification.type == 'PAYMENT_FAILED' %}
+                    <i class="fas fa-exclamation-circle text-danger"></i>
+                {% elif notification.type == 'SPACE_ALERT' %}
+                    <i class="fas fa-parking text-info"></i>
+                {% else %}
+                    <i class="fas fa-bell text-primary"></i>
+                {% endif %}
+            </div>
+            <div class="notification-content">
+                <h6>{{ notification.title }}</h6>
+                <p>{{ notification.message }}</p>
+                <small>{{ notification.created_at|timesince }} ago</small>
+            </div>
+            <button class="btn btn-link notification-action" 
+                    onclick="markAsRead({{ notification.id }})">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        {% empty %}
+        <div class="no-notifications">
+            <img src="{% static 'images/no-notifications.svg' %}" alt="No notifications">
+            <p>No notifications yet</p>
+        </div>
+        {% endfor %}
+    </div>
+</div> 

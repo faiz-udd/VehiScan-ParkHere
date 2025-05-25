@@ -1,0 +1,78 @@
+config:
+  target: "http://localhost:8000"
+  phases:
+    - duration: 60
+      arrivalRate: 5
+      rampTo: 50
+      name: "Warm up"
+    - duration: 300
+      arrivalRate: 50
+      name: "Sustained load"
+    - duration: 60
+      arrivalRate: 50
+      rampTo: 100
+      name: "Spike"
+  payload:
+    path: "users.csv"
+    fields:
+      - "username"
+      - "password"
+
+scenarios:
+  - name: "Parking search and booking"
+    weight: 7
+    flow:
+      - post:
+          url: "/api/token/"
+          json:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          capture:
+            json: "$.access"
+            as: "token"
+      
+      - get:
+          url: "/api/parking-lots/search/"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          qs:
+            latitude: "40.7829"
+            longitude: "-73.9654"
+            radius: "1.0"
+      
+      - think: 2
+      
+      - post:
+          url: "/api/bookings/"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            parking_lot_id: "1"
+            start_time: "2024-03-20T10:00:00Z"
+            duration: 2
+
+  - name: "User profile operations"
+    weight: 3
+    flow:
+      - post:
+          url: "/api/token/"
+          json:
+            username: "{{ username }}"
+            password: "{{ password }}"
+          capture:
+            json: "$.access"
+            as: "token"
+      
+      - get:
+          url: "/api/users/profile/"
+          headers:
+            Authorization: "Bearer {{ token }}"
+      
+      - think: 1
+      
+      - patch:
+          url: "/api/users/profile/"
+          headers:
+            Authorization: "Bearer {{ token }}"
+          json:
+            phone_number: "+1234567890" 
