@@ -36,7 +36,6 @@ class UserProfile(models.Model):
         return self.get_user_type_display()
     def __str__(self):
         return f"{self.user.username} ({self.get_user_type_display()})"
-    
 
 # Create your models here.
 class ParkingLot(models.Model):
@@ -173,3 +172,4 @@ class ParkingRequestLog(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     user_ip_address = models.CharField(max_length=15)
     
+# this is used to log the parking request made by the user
