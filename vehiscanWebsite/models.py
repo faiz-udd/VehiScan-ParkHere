@@ -1,4 +1,3 @@
-"""Defines the models used in the PerfectParking app."""
 from geopy.distance import geodesic
 from django.db import models
 from django.contrib.auth.models import User

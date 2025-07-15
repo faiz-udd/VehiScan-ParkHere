@@ -1,9 +1,9 @@
 from django.apps import AppConfig
 
-class PerfectParkingConfig(AppConfig):
+class VehiscanWebsiteConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'PerfectParking'
+    name = 'vehiscanWebsite'
 
     def ready(self):
-        import PerfectParking.signals
+        import vehiscanWebsite.signals
 
