@@ -3,7 +3,7 @@ import sys
 import unittest
 
 from requests import request
-from PerfectParkingClient.perfectparking import ParkingMonitorData, RestApiUtility
+from vehiscanModel.perfectparking import ParkingMonitorData, RestApiUtility
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 

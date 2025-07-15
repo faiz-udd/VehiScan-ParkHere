@@ -1,4 +1,3 @@
-""" Utility for the PerfectParking project"""
 from django.contrib.auth.models import User
 from .models import ParkingLotMonitor, ParkingRequestLog
 

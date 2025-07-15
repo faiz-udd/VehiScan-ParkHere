@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from PerfectParking.models import ParkingLot, ParkingLotMonitor,  UserProfile
+from vehiscanWebsite.models import ParkingLot, ParkingLotMonitor,  UserProfile
 
 # Register your models here.
 
