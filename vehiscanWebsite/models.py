@@ -31,8 +31,6 @@ class UserProfile(models.Model):
     stripe_account_id = models.CharField(max_length=100, blank=True)  # For payment processing
     
 
-    def get_user_type_display(self):
-        return self.get_user_type_display()
     def __str__(self):
         return f"{self.user.username} ({self.get_user_type_display()})"
 
