@@ -6,6 +6,8 @@ urlpatterns = [
     path('login/', views.login_user, name='login'),
     path('logout/', views.logout_user, name='logout'),
     path('register/', views.register, name='register-user'),
+    path('send-otp/', views.send_otp, name='send_otp'),
+    path('verify-otp/', views.verify_otp, name='verify_otp'),
     path('account', views.account, name='account'),
     
     path(WebPaths.PARKING_LOTS, views.parking_lots, name='parking-lots'),
@@ -16,7 +18,6 @@ urlpatterns = [
     
    
     path(WebPaths.PRIVACY_POLICY, views.privacy_policy, name='privacy-policy'),
-    path('account/', views.account, name='account'),
     path('account/settings/', views.account_settings, name='account_settings'),
     path('account/security/', views.security_settings, name='security_settings'),
     
