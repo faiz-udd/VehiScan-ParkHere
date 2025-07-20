@@ -66,7 +66,8 @@
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand" href="/">VehiScan</a>
-     
+        <!-- Add the missing button opening tag -->
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false" aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
@@ -77,13 +78,13 @@
             <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#owner">Register</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'parking-lot-monitors' %}">Search</a></li>
             {% if user.is_authenticated %}
-              <li class="nav-item"><a href="{% url 'account' %}" class="btn btn-outline-primary ms-lg-3">Account</a></li>
+              <li class="nav-item"><a href="{% url 'account' %}" class="btn btn-outline-primary ms-lg-3 my-2 my-lg-0">Account</a></li>
               {% if user.profile.user_type == 'lot_owner' %}
-                <li class="nav-item"><a href="{% url 'create_listing' %}" class="btn btn-secondary ms-lg-3">Add Parking</a></li>
+                <li class="nav-item"><a href="{% url 'create_listing' %}" class="btn btn-secondary ms-lg-3 my-2 my-lg-0">Add Parking</a></li>
               {% endif %}
             {% else %}
               <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Sign In</a></li>
-              <li class="nav-item"><a class="btn btn-primary ms-lg-2" href="{% url 'register-user' %}">Sign Up</a></li>
+              <li class="nav-item"><a class="btn btn-primary ms-lg-2 my-2 my-lg-0" href="{% url 'register-user' %}">Sign Up</a></li>
             {% endif %}
           </ul>
         </div>

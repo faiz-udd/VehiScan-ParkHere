@@ -41,4 +41,5 @@ urlpatterns = [
     path('listing/<int:pk>/delete/', views.delete_listing, name='delete_listing'),
     path('listing/<int:pk>/view/', views.view_listing, name='view_listing'),
     path('contact/', views.contact, name='contact'),
+    path('approve-parking-lot/', views.approve_parking_lot, name='approve_parking_lot'),
 ]
