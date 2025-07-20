@@ -1,5 +1,10 @@
 from django.urls import path
 from . import views, WebPaths
+from django.contrib.auth.decorators import login_required, user_passes_test
+
+# Create a function to check if user is a parking lot owner
+def is_parking_lot_owner(user):
+    return user.is_authenticated and hasattr(user, 'profile') and user.profile.user_type == 'lot_owner'
 
 urlpatterns = [
     path('', views.index, name='home'),
@@ -21,10 +26,19 @@ urlpatterns = [
     path('account/settings/', views.account_settings, name='account_settings'),
     path('account/security/', views.security_settings, name='security_settings'),
     
-    path('account/create_listing/', views.create_listing, name='create_listing'),
+    # Use only one URL for creating listings, with owner-only permissions
+    path('listings/create/', 
+         user_passes_test(is_parking_lot_owner, login_url='/login/')(views.create_parking_lot), 
+         name='create_parking_lot'),
+    
+    # Keep the old URL for backward compatibility but point it to the same view
+    path('account/create_listing/', 
+         user_passes_test(is_parking_lot_owner, login_url='/login/')(views.create_parking_lot), 
+         name='create_listing'),
     
     path('account/edit_listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('listing/<int:pk>/edit/', views.edit_listing, name='edit_listing'),
     path('listing/<int:pk>/delete/', views.delete_listing, name='delete_listing'),
     path('listing/<int:pk>/view/', views.view_listing, name='view_listing'),
+    path('contact/', views.contact, name='contact'),
 ]

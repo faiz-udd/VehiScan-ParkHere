@@ -1,8 +1,9 @@
 {% load static %}
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-100">
   <head>
     <title>{% block title %}VehiScan{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.1/jquery.min.js" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -10,8 +11,19 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-
-      body { font-family: 'Roboto', Arial, sans-serif; background: #f8f9fa; }
+      html, body {
+        height: 100%;
+      }
+      body {
+        font-family: 'Roboto', Arial, sans-serif; 
+        background: #f8f9fa;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+      }
+      main {
+        flex: 1 0 auto; /* This makes the main content area grow to push the footer down */
+      }
       h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', Arial, sans-serif; }
       .navbar { background: #fff !important; box-shadow: 0 2px 8px rgba(44,184,243,0.04); }
       .navbar-brand { color: #2dc98a !important; font-weight: bold; font-size: 1.6rem; letter-spacing: 1px; }
@@ -23,36 +35,51 @@
       .btn-outline-primary:hover { background: #2dc98a !important; color: #fff !important; }
       .btn-secondary { background: #44b8f3 !important; border: none; }
       .btn-secondary:hover { background: #2196c9 !important; }
-      .footer { background: #222; color: #fff; padding: 2.5rem 0 1.2rem 0; }
+      .footer {
+        background: #222;
+        color: #fff;
+        padding: 2.5rem 0 1.2rem 0;
+        flex-shrink: 0; /* Prevent the footer from shrinking */
+        width: 100%;
+      }
       .footer a { color: #44b8f3; text-decoration: none; }
       .footer a:hover { color: #2dc98a; }
       .newsletter-input { border-radius: 2rem; border: none; padding: 0.7rem 1.2rem; }
       .newsletter-btn { border-radius: 2rem; background: #44b8f3; color: #fff; font-weight: 600; }
       @media (max-width: 767px) {
         .navbar-brand { font-size: 1.2rem; }
+        .footer {
+          text-align: center;
+        }
+        .footer .col-md-3, .footer .col-md-4, .footer .col-md-2 {
+          margin-bottom: 2rem;
+        }
+        .footer .d-flex.gap-3 {
+          justify-content: center;
+        }
       }
     </style>
     {% block head %}{% endblock %}
   </head>
-  <body>
+  <body class="d-flex flex-column min-vh-100">
     <!-- Modern Navbar -->
     <nav class="navbar navbar-expand-lg navbar-light bg-white shadow-sm sticky-top">
       <div class="container">
         <a class="navbar-brand" href="/">VehiScan</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+     
           <span class="navbar-toggler-icon"></span>
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
           <ul class="navbar-nav ms-auto align-items-lg-center">
             <li class="nav-item"><a class="nav-link" href="{% url 'home' %}">Home</a></li>
-            <li class="nav-item"><a class="nav-link" href="/website/index.html#features">Features</a></li>
-            <li class="nav-item"><a class="nav-link" href="/website/index.html#how">How It Works</a></li>
-            <li class="nav-item"><a class="nav-link" href="/website/index.html#owner">Register</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#features">Features</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#how">How It Works</a></li>
+            <li class="nav-item"><a class="nav-link" href="{% url 'home' %}#owner">Register</a></li>
             <li class="nav-item"><a class="nav-link" href="{% url 'parking-lot-monitors' %}">Search</a></li>
             {% if user.is_authenticated %}
               <li class="nav-item"><a href="{% url 'account' %}" class="btn btn-outline-primary ms-lg-3">Account</a></li>
-              {% if user.parkinglotowner %}
-                <li class="nav-item"><a href="{% url 'register_parking' %}" class="btn btn-secondary ms-lg-3">Add Parking</a></li>
+              {% if user.profile.user_type == 'lot_owner' %}
+                <li class="nav-item"><a href="{% url 'create_listing' %}" class="btn btn-secondary ms-lg-3">Add Parking</a></li>
               {% endif %}
             {% else %}
               <li class="nav-item"><a class="nav-link" href="{% url 'login' %}">Sign In</a></li>
@@ -62,11 +89,14 @@
         </div>
       </div>
     </nav>
-    <main class="container-fluid px-0">
+    
+    <!-- Main Content -->
+    <main class="container-fluid px-0 flex-grow-1">
       {% block main %}{% endblock %}
     </main>
+    
     <!-- Modern Footer -->
-    <footer class="footer mt-5">
+    <footer class="footer mt-auto">
       <div class="container">
         <div class="row mb-4">
           <div class="col-md-4 mb-3 mb-md-0">
@@ -77,9 +107,9 @@
             <h5>Links</h5>
             <ul class="list-unstyled">
               <li><a href="#">About Us</a></li>
-              <li><a href="#">Contact</a></li>
+              <li><a href="{% url 'home' %}#contact">Contact</a></li>
               <li><a href="#">FAQ</a></li>
-              <li><a href="#">Privacy Policy</a></li>
+              <li><a href="{% url 'privacy-policy' %}">Privacy Policy</a></li>
               <li><a href="#">Terms of Service</a></li>
             </ul>
           </div>
@@ -106,6 +136,81 @@
         </div>
       </div>
     </footer>
+    
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 11"></div>
     {% block scripts %}{% endblock %}
+    <script>
+      // Process Django messages and convert them to toasts
+      document.addEventListener('DOMContentLoaded', function() {
+        // Function to create and show toast
+        function showToast(message, type) {
+          const toastContainer = document.querySelector('.toast-container');
+          
+          // Create unique ID for this toast
+          const toastId = 'toast-' + Date.now();
+          
+          // Set icon based on message type
+          let icon = 'info-circle';
+          let bgClass = 'bg-info';
+          
+          if (type === 'success') {
+            icon = 'check-circle';
+            bgClass = 'bg-success';
+          } else if (type === 'error' || type === 'danger') {
+            icon = 'exclamation-circle';
+            bgClass = 'bg-danger';
+          } else if (type === 'warning') {
+            icon = 'exclamation-triangle';
+            bgClass = 'bg-warning';
+          }
+          
+          // Create toast HTML
+          const toastHtml = `
+            <div id="${toastId}" class="toast text-white ${bgClass}" role="alert" aria-live="assertive" aria-atomic="true">
+              <div class="toast-header ${bgClass} text-white">
+                <i class="fas fa-${icon} me-2"></i>
+                <strong class="me-auto">${type === 'success' ? 'Success' : type === 'error' ? 'Error' : 'Message'}</strong>
+                <small>Just now</small>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+              </div>
+              <div class="toast-body">
+                ${message}
+              </div>
+            </div>
+          `;
+          
+          // Add toast to container
+          toastContainer.insertAdjacentHTML('beforeend', toastHtml);
+          
+          // Initialize and show toast
+          const toastElement = document.getElementById(toastId);
+          const toast = new bootstrap.Toast(toastElement, {
+            autohide: true,
+            delay: 5000
+          });
+          toast.show();
+          
+          // Remove toast from DOM after it's hidden
+          toastElement.addEventListener('hidden.bs.toast', function() {
+            toastElement.remove();
+          });
+        }
+        
+        // Process Django messages if any
+        {% if messages %}
+          {% for message in messages %}
+            showToast("{{ message }}", "{{ message.tags }}");
+          {% endfor %}
+        {% endif %}
+        
+        // Check URL for message parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('message')) {
+          const message = urlParams.get('message');
+          const type = urlParams.get('type') || 'info';
+          showToast(decodeURIComponent(message), type);
+        }
+      });
+    </script>
   </body>
 </html>

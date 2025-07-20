@@ -25,7 +25,9 @@ from .forms import RegistrationForm
 from django.core.files.images import get_image_dimensions
 from django.core.exceptions import ValidationError
 import random
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
+from django.template.loader import render_to_string
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import EmailOTP
@@ -56,7 +58,7 @@ def login_user(request):
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect('parking-lots')  # Redirect to parking lots page after logi
+            return redirect('/')  # Redirect to parking lots page after logi
         else:
             return redirect('login')  # Redirect to login page if authentication fails
     else:  # FORM NOT SUBMITTED
@@ -498,3 +500,49 @@ def my_registrations(request):
         'registrations': registrations,
         'active_tab': 'listings'
     })
+
+def contact(request):
+    """Handle contact form submission"""
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        email = request.POST.get('email')
+        subject = request.POST.get('subject')
+        message_text = request.POST.get('message')
+        
+        # Validate form fields
+        if not all([name, email, subject, message_text]):
+            messages.error(request, "Please fill in all fields")
+            return redirect('home')
+            
+        try:
+            # Compose email
+            email_message = f"""
+            New contact message from {name} ({email})
+            
+            Subject: {subject}
+            
+            Message:
+            {message_text}
+            """
+            
+            # Send email
+            send_mail(
+                f'VehiScan Contact: {subject}',
+                email_message,
+                settings.DEFAULT_FROM_EMAIL,
+                [settings.ADMIN_EMAIL],  # Use your admin email from settings
+                fail_silently=False,
+            )
+            
+            # Add success message for toast
+            messages.success(request, "Your message has been sent successfully! We'll get back to you soon.")
+            
+        except Exception as e:
+            # Log the error
+            print(f"Email error: {str(e)}")
+            
+            # Add error message for toast
+            messages.error(request, "Unable to send message. Please try again later.")
+    
+    # Redirect back to homepage
+    return redirect('home')

@@ -126,3 +126,5 @@ EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'faiz.bscs4430@iiu.edu.pk'
 EMAIL_HOST_PASSWORD = 'mzml iqqt bcgk mngt'
+DEFAULT_FROM_EMAIL = 'noreply@vehiscan.com'
+ADMIN_EMAIL = 'faiz.bscs4430@iiu.edu.pk'
