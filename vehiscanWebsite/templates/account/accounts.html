@@ -5,53 +5,53 @@
 {% load humanize %}
 
 {% block main %}
-<div class="account-container bg-light">
+<div class="account-container">
   <div class="container-fluid">
     <div class="row gx-5">
       <!-- Left Navigation Sidebar -->
       <div class="col-lg-3 col-xxl-2">
-        <div class="account-sidebar card shadow-sm h-100 rounded-3 bg-dark text-light border-0">
+        <div class="account-sidebar card shadow-sm h-100 rounded-3 border-0">
           <div class="card-body p-4 d-flex flex-column align-items-center">
             <div class="d-flex flex-column align-items-center mb-4 w-100">
               <img src="{{ user.profile.avatar|default:'/static/images/default-avatar.png' }}" 
-                   class="rounded-circle mb-2 border border-2 border-light"
+                   class="rounded-circle mb-2 border border-2"
                    width="64" 
                    height="64"
                    alt="Profile">
               <div class="text-center w-100">
-                <h6 class="mb-1 fw-bold text-light">{{ user.get_full_name|default:user.username }}</h6>
-                <small class="text-secondary d-block" style="word-break:break-all;">{{ user.email }}</small>
+                <h6 class="mb-1 fw-bold">{{ user.get_full_name|default:user.username }}</h6>
+                <small class="text-muted d-block" style="word-break:break-all;">{{ user.email }}</small>
               </div>
             </div>
             <nav class="nav flex-column gap-2 w-100">
               {% if user.profile.user_type == 'lot_owner' %}
-              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Space Owner</div>
-              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'listings' %}active{% endif %} text-light" 
+              <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Space Owner</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'listings' %}active{% endif %}" 
                  href="?tab=listings">
                 <i class="fas fa-car me-2"></i>My Listings
               </a>
-              <a class="nav-link py-2 px-3 rounded text-light" href="#">
+              <a class="nav-link py-2 px-3 rounded" href="#">
                 <i class="fas fa-chart-line me-2"></i>Performance
               </a>
               {% elif user.profile.user_type == 'driver' %}
-              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Driver</div>
+              <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Driver</div>
               <!-- Booking links removed -->
               {% else %}
-              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Admin</div>
-              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'analytics' %}active{% endif %} text-light" 
+              <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Admin</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'analytics' %}active{% endif %}" 
                  href="#?tab=analytics">
                 <i class="fas fa-chart-line me-2"></i>Analytics</a>
               {% endif %}
             
-              <div class="fw-bold text-uppercase small text-secondary mt-3 mb-2 ps-2">Account</div>
-              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'profile' %}active{% endif %} text-light" href="{% url 'account_settings' %}">
+              <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Account</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'profile' %}active{% endif %}" href="{% url 'account_settings' %}">
                 <i class="fas fa-user-cog me-2"></i>Profile Settings
               </a>
-              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'security' %}active{% endif %} text-light" href="{% url 'security_settings' %}">
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'security' %}active{% endif %}" href="{% url 'security_settings' %}">
                 <i class="fas fa-shield-alt me-2"></i>Security Settings
               </a>
               
-              <div class="dropdown-divider my-3 bg-secondary"></div>
+              <div class="dropdown-divider my-3"></div>
               
               <a class="nav-link py-2 px-3 rounded text-danger" href="{% url 'logout' %}">
                 <i class="fas fa-sign-out-alt me-2"></i>Log Out
@@ -155,12 +155,12 @@
 <style>
     .account-sidebar {
       min-height: 90vh;
-      background: #212529 !important;
-      color: #f8f9fa !important;
-      border-right: 1px solid #343a40 !important;
+      background: #ffffff !important;
+      color: #212529 !important;
+      border-right: 1px solid #e9ecef !important;
     }
     .account-sidebar .nav-link {
-      color: #f8f9fa !important;
+      color: #495057 !important;
       padding: 0.75rem 1.5rem;
       margin: 0.25rem 0;
       border-radius: 8px;
@@ -176,8 +176,8 @@
       border-left: 4px solid #0d6efd;
     }
     .account-sidebar .nav-link:hover {
-      background: #343a40 !important;
-      color: #fff !important;
+      background: #f8f9fa !important;
+      color: #0d6efd !important;
     }
     .account-sidebar .nav-link i {
       width: 24px;
@@ -188,13 +188,18 @@
     .account-sidebar .text-uppercase {
       font-size: 0.75rem;
       letter-spacing: 0.5px;
-      color: #adb5bd !important;
+      color: #6c757d !important;
       margin-top: 1.5rem;
       margin-bottom: 0.5rem;
       padding-left: 1.5rem;
     }
     .account-sidebar .dropdown-divider {
       margin: 1.5rem 0;
-      background: #495057;
+      background: #dee2e6;
+    }
+    .account-container {
+      background-color: #f8f9fa;
+      min-height: 90vh;
+      padding: 2rem 0;
     }
 </style>

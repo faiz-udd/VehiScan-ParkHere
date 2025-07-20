@@ -183,3 +183,84 @@ class EmailOTP(models.Model):
 
     def __str__(self):
         return f"{self.email} - {self.otp}"
+
+class RegistrationStatus(models.TextChoices):
+    PENDING = 'pending', _('Pending')
+    APPROVED = 'approved', _('Approved')
+    REJECTED = 'rejected', _('Rejected')
+    LIVE = 'live', _('Live')
+
+class PendingParkingLotRegistration(models.Model):
+    # Parking lot details
+    name = models.CharField(max_length=100)
+    address = models.CharField(max_length=255)
+    hours = models.CharField(max_length=255)
+    isPaidParking = models.BooleanField(default=True)
+    latitude = models.DecimalField(max_digits=17, decimal_places=15)
+    longitude = models.DecimalField(max_digits=17, decimal_places=15)
+    image = models.ImageField(upload_to="images/pending-parking-lot/", blank=True)
+    parking_spaces = models.IntegerField(default=1)
+    base_price_per_hour = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
+    
+    # Camera/monitor details
+    monitor_name = models.CharField(max_length=100)
+    monitor_latitude = models.DecimalField(max_digits=17, decimal_places=15)
+    monitor_longitude = models.DecimalField(max_digits=17, decimal_places=15)
+    camera_image = models.ImageField(upload_to="images/pending-monitor/", blank=True)
+    camera_stream_url = models.URLField()
+    
+    # Registration meta
+    owner = models.ForeignKey(
+        UserProfile,
+        on_delete=models.CASCADE,
+        related_name='pending_lots',
+        limit_choices_to={'user_type': UserType.LOT_OWNER}
+    )
+    status = models.CharField(
+        max_length=20,
+        choices=RegistrationStatus.choices,
+        default=RegistrationStatus.PENDING
+    )
+    submitted_date = models.DateTimeField(auto_now_add=True)
+    admin_notes = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.name} ({self.get_status_display()})"
+    
+    def approve_registration(self):
+        """Create a ParkingLot and ParkingLotMonitor from this registration"""
+        if self.status != RegistrationStatus.APPROVED:
+            # Create the parking lot
+            parking_lot = ParkingLot.objects.create(
+                name=self.name,
+                address=self.address,
+                hours=self.hours,
+                isPaidParking=self.isPaidParking,
+                latitude=self.latitude,
+                longitude=self.longitude,
+                image=self.image,
+                parking_spaces=self.parking_spaces,
+                base_price_per_hour=self.base_price_per_hour,
+                owner=self.owner,
+                is_active=True
+            )
+            
+            # Create the monitor
+            ParkingLotMonitor.objects.create(
+                parkingLot=parking_lot,
+                name=self.monitor_name,
+                latitude=self.monitor_latitude,
+                longitude=self.monitor_longitude,
+                image=self.camera_image,
+                camera_stream_url=self.camera_stream_url,
+                free_parking_spaces=0,
+                total_parking_spaces=self.parking_spaces,
+                status=True
+            )
+            
+            # Update status
+            self.status = RegistrationStatus.LIVE
+            self.save()
+            
+            return parking_lot
+        return None

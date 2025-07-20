@@ -1,34 +1,311 @@
 <!-- listings/create.html -->
 {% extends 'master.html' %}
-{% block title %}Create Listing - PerfectParking{% endblock %}
+{% block title %}Register Parking Lot - VehiScan{% endblock %}
 {% load static %}
+
+{% block head %}
+<style>
+  .form-step {
+    display: none;
+  }
+  .form-step.active {
+    display: block;
+  }
+  .step-indicator {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 30px;
+    position: relative;
+  }
+  .step-indicator::before {
+    content: "";
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #e9ecef;
+    z-index: 0;
+  }
+  .step-circle {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background-color: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6c757d;
+    font-weight: bold;
+    position: relative;
+    z-index: 1;
+  }
+  .step-circle.active {
+    background-color: #0d6efd;
+    color: white;
+  }
+  .step-circle.completed {
+    background-color: #198754;
+    color: white;
+  }
+  .step-text {
+    position: absolute;
+    top: 35px;
+    font-size: 12px;
+    white-space: nowrap;
+    transform: translateX(-50%);
+    left: 50%;
+  }
+  .map-container {
+    height: 300px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+</style>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"/>
+{% endblock %}
 
 {% block main %}
 <div class="container py-5">
   <div class="row">
-    <div class="col-lg-8 mx-auto">
-      <div class="card shadow-sm">
-        <div class="card-body">
-          <h2 class="h4 mb-4">Create New Parking Space</h2>
-          <form method="post" enctype="multipart/form-data">
+    <div class="col-lg-10 mx-auto">
+      <div class="card shadow">
+        <div class="card-body p-4">
+          <h2 class="h4 mb-4">Register New Parking Space</h2>
+          
+          <div class="step-indicator mb-5">
+            <div class="position-relative">
+              <div class="step-circle active" id="step-circle-1">1</div>
+              <span class="step-text">Basic Info</span>
+            </div>
+            <div class="position-relative">
+              <div class="step-circle" id="step-circle-2">2</div>
+              <span class="step-text">Location</span>
+            </div>
+            <div class="position-relative">
+              <div class="step-circle" id="step-circle-3">3</div>
+              <span class="step-text">Camera Setup</span>
+            </div>
+            <div class="position-relative">
+              <div class="step-circle" id="step-circle-4">4</div>
+              <span class="step-text">Review</span>
+            </div>
+          </div>
+
+          <form id="parkingRegistrationForm" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            {% for field in form %}
-              <div class="mb-3">
-                <label for="{{ field.id_for_label }}" class="form-label fw-semibold">{{ field.label }}</label>
-                {{ field }}
-                {% if field.help_text %}
-                  <div class="form-text">{{ field.help_text }}</div>
-                {% endif %}
-                {% for error in field.errors %}
-                  <div class="text-danger small">{{ error }}</div>
-                {% endfor %}
+            
+            <!-- Step 1: Basic Info -->
+            <div class="form-step active" id="step-1">
+              <h3 class="h5 mb-4 text-primary">Basic Information</h3>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Parking Lot Name *</label>
+                  <input type="text" name="name" class="form-control" required>
+                  <div class="form-text">Enter a unique, descriptive name for your parking lot</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Operating Hours *</label>
+                  <input type="text" name="hours" class="form-control" placeholder="e.g., 24/7 or 8AM-10PM" required>
+                  <div class="form-text">Specify when the parking lot is open</div>
+                </div>
               </div>
-            {% endfor %}
-            <div class="mt-4 d-flex gap-2">
-              <button type="submit" class="btn btn-primary">Create Listing</button>
-              <a href="{% url 'account' %}" class="btn btn-outline-secondary">
-                Cancel
-              </a>
+              
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-semibold">Address *</label>
+                  <input type="text" name="address" class="form-control" required>
+                  <div class="form-text">Full street address of the parking lot</div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Total Parking Spaces *</label>
+                  <input type="number" min="1" name="parking_spaces" class="form-control" required>
+                  <div class="form-text">Total capacity of the parking lot</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Base Price Per Hour (£) *</label>
+                  <input type="number" step="0.01" min="0" name="base_price_per_hour" class="form-control" required>
+                  <div class="form-text">Hourly rate for parking</div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Paid Parking?</label>
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" name="isPaidParking" id="isPaidParking" checked>
+                    <label class="form-check-label" for="isPaidParking">
+                      Yes, this is a paid parking lot
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Parking Lot Photo</label>
+                  <input type="file" name="image" class="form-control" accept="image/*">
+                  <div class="form-text">Upload a clear image of your parking lot</div>
+                </div>
+              </div>
+              
+              <div class="mt-4 d-flex justify-content-end">
+                <button type="button" class="btn btn-primary next-step">Continue to Location</button>
+              </div>
+            </div>
+            
+            <!-- Step 2: Location -->
+            <div class="form-step" id="step-2">
+              <h3 class="h5 mb-4 text-primary">Parking Lot Location</h3>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i> 
+                Please click on the map to set your parking lot's exact location or enter coordinates manually.
+              </div>
+              
+              <div class="map-container" id="parkingMap"></div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Latitude *</label>
+                  <input type="text" name="latitude" id="latitude" class="form-control" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Longitude *</label>
+                  <input type="text" name="longitude" id="longitude" class="form-control" required>
+                </div>
+              </div>
+              
+              <div class="mt-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-step">Back</button>
+                <button type="button" class="btn btn-primary next-step">Continue to Camera Setup</button>
+              </div>
+            </div>
+            
+            <!-- Step 3: Camera Setup -->
+            <div class="form-step" id="step-3">
+              <h3 class="h5 mb-4 text-primary">Camera Configuration</h3>
+              
+              <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                The camera will be used to monitor parking space availability using AI detection.
+                Make sure to provide a valid RTSP or HTTP stream URL.
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Camera Name *</label>
+                  <input type="text" name="monitor_name" class="form-control" required>
+                  <div class="form-text">Provide a descriptive name for this camera</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Camera Stream URL *</label>
+                  <input type="url" name="camera_stream_url" class="form-control" placeholder="rtsp://" required>
+                  <div class="form-text">RTSP or HTTP URL for the camera stream</div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-12">
+                  <label class="form-label fw-semibold">Camera Photo</label>
+                  <input type="file" name="camera_image" class="form-control" accept="image/*">
+                  <div class="form-text">Upload a snapshot from the camera's view (helpful for our team during setup)</div>
+                </div>
+              </div>
+              
+              <div class="alert alert-warning">
+                <i class="fas fa-exclamation-triangle"></i>
+                <strong>Note:</strong> By default, we'll use the same location coordinates for the camera as the parking lot.
+                If your camera is at a different location, you can specify it below.
+              </div>
+              
+              <div class="form-check mb-3">
+                <input class="form-check-input" type="checkbox" id="differentLocation">
+                <label class="form-check-label" for="differentLocation">
+                  My camera is at a different location than the parking lot
+                </label>
+              </div>
+              
+              <div id="cameraLocationFields" style="display:none">
+                <div class="map-container" id="cameraMap"></div>
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Camera Latitude</label>
+                    <input type="text" name="monitor_latitude" id="monitorLatitude" class="form-control">
+                  </div>
+                  <div class="col-md-6">
+                    <label class="form-label fw-semibold">Camera Longitude</label>
+                    <input type="text" name="monitor_longitude" id="monitorLongitude" class="form-control">
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mt-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-step">Back</button>
+                <button type="button" class="btn btn-primary next-step">Review Registration</button>
+              </div>
+            </div>
+            
+            <!-- Step 4: Review -->
+            <div class="form-step" id="step-4">
+              <h3 class="h5 mb-4 text-primary">Review Your Registration</h3>
+              
+              <div class="alert alert-warning mb-4">
+                <i class="fas fa-exclamation-triangle"></i>
+                Please review all information carefully. After submission, your registration will be pending approval by our admin team.
+              </div>
+              
+              <div class="card mb-4">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0">Basic Information</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>Name:</strong> <span id="review-name"></span></p>
+                      <p><strong>Address:</strong> <span id="review-address"></span></p>
+                      <p><strong>Hours:</strong> <span id="review-hours"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Parking Spaces:</strong> <span id="review-spaces"></span></p>
+                      <p><strong>Price Per Hour:</strong> £<span id="review-price"></span></p>
+                      <p><strong>Paid Parking:</strong> <span id="review-paid"></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="card mb-4">
+                <div class="card-header bg-light">
+                  <h5 class="mb-0">Location & Camera</h5>
+                </div>
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-6">
+                      <p><strong>Parking Lot Location:</strong> <span id="review-location"></span></p>
+                      <p><strong>Camera Name:</strong> <span id="review-camera-name"></span></p>
+                      <p><strong>Stream URL:</strong> <span id="review-stream-url"></span></p>
+                    </div>
+                    <div class="col-md-6">
+                      <p><strong>Camera Location:</strong> <span id="review-camera-location"></span></p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="confirmAccurate" required>
+                <label class="form-check-label" for="confirmAccurate">
+                  I confirm that all information provided is accurate and complete
+                </label>
+              </div>
+              
+              <div class="mt-4 d-flex justify-content-between">
+                <button type="button" class="btn btn-outline-secondary prev-step">Back</button>
+                <button type="submit" class="btn btn-success" id="submitBtn" disabled>Submit Registration</button>
+              </div>
             </div>
           </form>
         </div>
@@ -36,4 +313,238 @@
     </div>
   </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let currentStep = 1;
+  const totalSteps = 4;
+  
+  // Initialize maps
+  const parkingMap = L.map('parkingMap').setView([51.505, -0.09], 13);
+  let parkingMarker;
+  
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap contributors'
+  }).addTo(parkingMap);
+  
+  // Get user's location if allowed
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(function(position) {
+      parkingMap.setView([position.coords.latitude, position.coords.longitude], 15);
+    });
+  }
+  
+  // Click on map to set location
+  parkingMap.on('click', function(e) {
+    const lat = e.latlng.lat.toFixed(15);
+    const lng = e.latlng.lng.toFixed(15);
+    
+    document.getElementById('latitude').value = lat;
+    document.getElementById('longitude').value = lng;
+    
+    // Update or create marker
+    if (parkingMarker) {
+      parkingMarker.setLatLng(e.latlng);
+    } else {
+      parkingMarker = L.marker(e.latlng).addTo(parkingMap);
+    }
+  });
+  
+  // Camera location map setup
+  let cameraMap;
+  let cameraMarker;
+  
+  document.getElementById('differentLocation').addEventListener('change', function() {
+    const cameraLocationFields = document.getElementById('cameraLocationFields');
+    
+    if (this.checked) {
+      cameraLocationFields.style.display = 'block';
+      
+      // Initialize camera map if it doesn't exist
+      if (!cameraMap) {
+        cameraMap = L.map('cameraMap').setView([51.505, -0.09], 13);
+        
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(cameraMap);
+        
+        // If we already have a parking location, center on it
+        const lat = document.getElementById('latitude').value;
+        const lng = document.getElementById('longitude').value;
+        
+        if (lat && lng) {
+          cameraMap.setView([lat, lng], 15);
+        } else if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            cameraMap.setView([position.coords.latitude, position.coords.longitude], 15);
+          });
+        }
+        
+        // Click on map to set camera location
+        cameraMap.on('click', function(e) {
+          const lat = e.latlng.lat.toFixed(15);
+          const lng = e.latlng.lng.toFixed(15);
+          
+          document.getElementById('monitorLatitude').value = lat;
+          document.getElementById('monitorLongitude').value = lng;
+          
+          // Update or create marker
+          if (cameraMarker) {
+            cameraMarker.setLatLng(e.latlng);
+          } else {
+            cameraMarker = L.marker(e.latlng).addTo(cameraMap);
+          }
+        });
+      }
+      
+      // Force maps to update their size
+      setTimeout(function() {
+        parkingMap.invalidateSize();
+        cameraMap.invalidateSize();
+      }, 100);
+    } else {
+      cameraLocationFields.style.display = 'none';
+      // Clear camera location fields
+      document.getElementById('monitorLatitude').value = '';
+      document.getElementById('monitorLongitude').value = '';
+    }
+  });
+  
+  // Navigation buttons
+  document.querySelectorAll('.next-step').forEach(button => {
+    button.addEventListener('click', function() {
+      // Validate current step
+      if (validateStep(currentStep)) {
+        document.getElementById(`step-${currentStep}`).classList.remove('active');
+        document.getElementById(`step-circle-${currentStep}`).classList.remove('active');
+        document.getElementById(`step-circle-${currentStep}`).classList.add('completed');
+        
+        currentStep++;
+        
+        document.getElementById(`step-${currentStep}`).classList.add('active');
+        document.getElementById(`step-circle-${currentStep}`).classList.add('active');
+        
+        // Force maps to update their size
+        setTimeout(function() {
+          if (currentStep === 2) parkingMap.invalidateSize();
+          if (currentStep === 3 && cameraMap) cameraMap.invalidateSize();
+          
+          // Update review fields if going to step 4
+          if (currentStep === 4) {
+            updateReviewFields();
+          }
+        }, 100);
+      }
+    });
+  });
+  
+  document.querySelectorAll('.prev-step').forEach(button => {
+    button.addEventListener('click', function() {
+      document.getElementById(`step-${currentStep}`).classList.remove('active');
+      document.getElementById(`step-circle-${currentStep}`).classList.remove('active');
+      
+      currentStep--;
+      
+      document.getElementById(`step-${currentStep}`).classList.add('active');
+      document.getElementById(`step-circle-${currentStep}`).classList.add('active');
+      document.getElementById(`step-circle-${currentStep}`).classList.remove('completed');
+      
+      // Force maps to update their size
+      setTimeout(function() {
+        if (currentStep === 2) parkingMap.invalidateSize();
+        if (currentStep === 3 && cameraMap) cameraMap.invalidateSize();
+      }, 100);
+    });
+  });
+  
+  // Confirm checkbox enables submit button
+  document.getElementById('confirmAccurate').addEventListener('change', function() {
+    document.getElementById('submitBtn').disabled = !this.checked;
+  });
+  
+  // Form validation functions
+  function validateStep(step) {
+    let valid = true;
+    let fields = [];
+    
+    switch(step) {
+      case 1:
+        fields = ['name', 'hours', 'address', 'parking_spaces', 'base_price_per_hour'];
+        break;
+      case 2:
+        fields = ['latitude', 'longitude'];
+        break;
+      case 3:
+        fields = ['monitor_name', 'camera_stream_url'];
+        // Check if different location is checked and validate those fields
+        if (document.getElementById('differentLocation').checked) {
+          fields.push('monitorLatitude', 'monitorLongitude');
+        }
+        break;
+    }
+    
+    // Check if required fields are filled
+    fields.forEach(field => {
+      const element = document.getElementById(field) || document.getElementsByName(field)[0];
+      if (!element.value && element.required) {
+        element.classList.add('is-invalid');
+        valid = false;
+      } else {
+        element.classList.remove('is-invalid');
+      }
+    });
+    
+    if (!valid) {
+      alert('Please fill in all required fields');
+    }
+    
+    return valid;
+  }
+  
+  // Update review fields
+  function updateReviewFields() {
+    document.getElementById('review-name').textContent = document.getElementsByName('name')[0].value;
+    document.getElementById('review-address').textContent = document.getElementsByName('address')[0].value;
+    document.getElementById('review-hours').textContent = document.getElementsByName('hours')[0].value;
+    document.getElementById('review-spaces').textContent = document.getElementsByName('parking_spaces')[0].value;
+    document.getElementById('review-price').textContent = document.getElementsByName('base_price_per_hour')[0].value;
+    document.getElementById('review-paid').textContent = document.getElementById('isPaidParking').checked ? 'Yes' : 'No';
+    
+    const lat = document.getElementById('latitude').value;
+    const lng = document.getElementById('longitude').value;
+    document.getElementById('review-location').textContent = `${lat}, ${lng}`;
+    
+    document.getElementById('review-camera-name').textContent = document.getElementsByName('monitor_name')[0].value;
+    document.getElementById('review-stream-url').textContent = document.getElementsByName('camera_stream_url')[0].value;
+    
+    if (document.getElementById('differentLocation').checked) {
+      const camLat = document.getElementById('monitorLatitude').value;
+      const camLng = document.getElementById('monitorLongitude').value;
+      document.getElementById('review-camera-location').textContent = `${camLat}, ${camLng}`;
+    } else {
+      document.getElementById('review-camera-location').textContent = 'Same as parking lot';
+    }
+  }
+  
+  // Handle form submission
+  document.getElementById('parkingRegistrationForm').addEventListener('submit', function(e) {
+    // Final validation check
+    if (!validateStep(currentStep)) {
+      e.preventDefault();
+      return;
+    }
+    
+    // If different location is not checked, copy parking lot coordinates to camera coordinates
+    if (!document.getElementById('differentLocation').checked) {
+      document.getElementById('monitorLatitude').value = document.getElementById('latitude').value;
+      document.getElementById('monitorLongitude').value = document.getElementById('longitude').value;
+    }
+    
+    // Form submission will proceed normally after this point
+  });
+});
+</script>
 {% endblock %}
