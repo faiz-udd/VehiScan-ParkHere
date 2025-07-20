@@ -14,6 +14,12 @@ class UserType(models.TextChoices):
     LOT_OWNER = 'lot_owner', _('Parking Lot Owner')
     ADMIN = 'admin', _('Administrator')
 
+class ParkingLotStatus(models.TextChoices):
+    PENDING = 'pending', _('Pending')
+    LIVE = 'live', _('Live')
+    REJECTED = 'rejected', _('Rejected')
+    INACTIVE = 'inactive', _('Inactive')
+
 #User Profile
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -50,6 +56,11 @@ class ParkingLot(models.Model):
     parking_spaces = models.IntegerField(default=1)
     base_price_per_hour = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
     is_active = models.BooleanField(default=True)
+    status = models.CharField(
+        max_length=20,
+        choices=ParkingLotStatus.choices,
+        default=ParkingLotStatus.PENDING
+    )
     owner = models.ForeignKey(
         UserProfile,
         on_delete=models.CASCADE,
@@ -62,6 +73,7 @@ class ParkingLot(models.Model):
         default=Decimal('10.00'),
         validators=[MinValueValidator(0)]
     )
+    admin_notes = models.TextField(blank=True)
 
     def get_image_url(self):
         if self.image:
@@ -201,7 +213,6 @@ class PendingParkingLotRegistration(models.Model):
     image = models.ImageField(upload_to="images/pending-parking-lot/", blank=True)
     parking_spaces = models.IntegerField(default=1)
     base_price_per_hour = models.DecimalField(max_digits=5, decimal_places=2, default=Decimal('0.0'))
-    
     # Camera/monitor details
     monitor_name = models.CharField(max_length=100)
     monitor_latitude = models.DecimalField(max_digits=17, decimal_places=15)

@@ -32,6 +32,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from .models import EmailOTP
 from django.utils import timezone
+from .models import ParkingLotStatus
 
 
 class WebPages:
@@ -296,14 +297,32 @@ def register_parking(request):
 # views.py
 @login_required
 def account(request):
-    active_tab = request.GET.get('tab', 'listings' if request.user.profile.user_type == 'LOT_OWNER'  else '')
+    active_tab = request.GET.get('tab', 'listings' if request.user.profile.user_type == 'lot_owner' else 'approvals' if request.user.profile.user_type == 'admin' else '')
     
     context = {
         'active_tab': active_tab,
         'user_profile': request.user.profile,
-        'active_listings': ParkingLot.objects.filter(owner__user=request.user, is_active=True),
-        'pending_listings': ParkingLot.objects.filter(owner__user=request.user, is_active=False),
     }
+    
+    if request.user.profile.user_type == 'lot_owner':
+        context.update({
+            'live_listings': ParkingLot.objects.filter(
+                owner=request.user.profile, 
+                status=ParkingLotStatus.LIVE,
+                is_active=True
+            ),
+            'pending_listings': ParkingLot.objects.filter(
+                owner=request.user.profile,
+                status=ParkingLotStatus.PENDING
+            ),
+            'rejected_listings': ParkingLot.objects.filter(
+                owner=request.user.profile,
+                status=ParkingLotStatus.REJECTED
+            )
+        })
+    elif request.user.profile.user_type == 'admin' and active_tab == 'approvals':
+        context['pending_approvals'] = ParkingLot.objects.filter(status=ParkingLotStatus.PENDING)
+    
     return render(request, 'account/accounts.html', context)
 
 @login_required
@@ -442,41 +461,49 @@ def create_parking_lot(request):
         
     if request.method == 'POST':
         try:
-            # Create a new pending registration
-            registration = PendingParkingLotRegistration(
-                # Parking lot details
+            # Create a new parking lot with pending status
+            parking_lot = ParkingLot(
                 name=request.POST.get('name'),
                 address=request.POST.get('address'),
                 hours=request.POST.get('hours'),
                 isPaidParking='isPaidParking' in request.POST,
                 latitude=request.POST.get('latitude'),
                 longitude=request.POST.get('longitude'),
-                parking_spaces=request.POST.get('parking_spaces'),
+                parking_spaces=int(request.POST.get('parking_spaces', 0)),
                 base_price_per_hour=request.POST.get('base_price_per_hour'),
-                
-                # Camera details
-                monitor_name=request.POST.get('monitor_name'),
-                monitor_latitude=request.POST.get('monitor_latitude') or request.POST.get('latitude'),
-                monitor_longitude=request.POST.get('monitor_longitude') or request.POST.get('longitude'),
-                camera_stream_url=request.POST.get('camera_stream_url'),
-                
-                # Owner info
                 owner=request.user.profile,
-                status='pending'
+                status=ParkingLotStatus.PENDING,
+                is_active=True  # Still active, just pending approval
             )
             
-            # Handle image files if they exist
+            # Handle lot image if it exists
             if 'image' in request.FILES:
-                registration.image = request.FILES['image']
+                parking_lot.image = request.FILES['image']
                 
+            # Save the parking lot
+            parking_lot.save()
+            
+            # Create associated monitor
+            monitor = ParkingLotMonitor(
+                parkingLot=parking_lot,
+                name=request.POST.get('monitor_name'),
+                latitude=request.POST.get('monitor_latitude') or request.POST.get('latitude'),
+                longitude=request.POST.get('monitor_longitude') or request.POST.get('longitude'),
+                camera_stream_url=request.POST.get('camera_stream_url'),
+                free_parking_spaces=0,
+                total_parking_spaces=int(request.POST.get('parking_spaces', 0)),
+                status=True  # Monitor is active
+            )
+            
+            # Handle camera image if it exists
             if 'camera_image' in request.FILES:
-                registration.camera_image = request.FILES['camera_image']
+                monitor.image = request.FILES['camera_image']
                 
-            registration.save()
+            monitor.save()
             
             messages.success(request, 
                 "Your parking lot registration has been submitted successfully! "
-                "Our team will review and approve it shortly."
+                "It is now pending approval by our admin team."
             )
             return redirect('account')
             
@@ -546,3 +573,44 @@ def contact(request):
     
     # Redirect back to homepage
     return redirect('home')
+
+@login_required
+def approve_parking_lot(request):
+    """Handle admin approval or rejection of parking lot registrations"""
+    if request.user.profile.user_type != 'admin':
+        messages.error(request, "You don't have permission to perform this action.")
+        return redirect('account')
+    
+    if request.method == 'POST':
+        listing_id = request.POST.get('listing_id')
+        action = request.POST.get('action')
+        admin_notes = request.POST.get('admin_notes', '')
+        
+        try:
+            parking_lot = ParkingLot.objects.get(id=listing_id)
+            
+            if action == 'approve':
+                parking_lot.status = ParkingLotStatus.LIVE
+                if admin_notes:
+                    parking_lot.admin_notes = admin_notes
+                parking_lot.save()
+                
+                messages.success(request, f"Parking lot '{parking_lot.name}' has been approved and is now live.")
+                
+                # TODO: Send notification to owner
+                
+            elif action == 'reject':
+                parking_lot.status = ParkingLotStatus.REJECTED
+                parking_lot.admin_notes = admin_notes
+                parking_lot.save()
+                
+                messages.success(request, f"Parking lot '{parking_lot.name}' has been rejected.")
+                
+                # TODO: Send notification to owner
+                
+        except ParkingLot.DoesNotExist:
+            messages.error(request, "Parking lot not found.")
+        except Exception as e:
+            messages.error(request, f"An error occurred: {str(e)}")
+    
+    return redirect('account')

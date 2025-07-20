@@ -35,11 +35,14 @@
               </a>
               {% elif user.profile.user_type == 'driver' %}
               <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Driver</div>
-              <!-- Booking links removed -->
-              {% else %}
+              <!-- Driver links here -->
+              {% elif user.profile.user_type == 'admin' %}
               <div class="fw-bold text-uppercase small text-muted mt-3 mb-2 ps-2">Admin</div>
+              <a class="nav-link py-2 px-3 rounded {% if active_tab == 'approvals' %}active{% endif %}" 
+                 href="?tab=approvals">
+                <i class="fas fa-check-circle me-2"></i>Registration Approvals</a>
               <a class="nav-link py-2 px-3 rounded {% if active_tab == 'analytics' %}active{% endif %}" 
-                 href="#?tab=analytics">
+                 href="?tab=analytics">
                 <i class="fas fa-chart-line me-2"></i>Analytics</a>
               {% endif %}
             
@@ -64,7 +67,214 @@
       <!-- Main Content (Scrollable) -->
       <div class="col-lg-9 col-xxl-10" style="max-height: 90vh; overflow-y: auto;">
         <div class="account-main-content p-4">
-          {% if user.profile.user_type == 'lot_owner' %}
+          
+          {% if user.profile.user_type == 'admin' and active_tab == 'approvals' %}
+            <!-- Admin Registration Approvals Tab -->
+            <div class="d-flex justify-content-between align-items-center mb-4">
+              <h2 class="h4 mb-0 fw-bold">Parking Lot Registration Approvals</h2>
+              <span class="badge bg-warning rounded-pill">{{ pending_approvals|length }} Pending</span>
+            </div>
+
+            {% if pending_approvals %}
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Name</th>
+                      <th>Owner</th>
+                      <th>Address</th>
+                      <th>Spaces</th>
+                      <th>Submitted</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {% for listing in pending_approvals %}
+                      <tr>
+                        <td>
+                          <div class="d-flex align-items-center">
+                            <div class="me-3" style="width: 48px; height: 48px;">
+                              <img src="{{ listing.get_image_url }}" alt="{{ listing.name }}" class="img-fluid rounded" style="width: 100%; height: 100%; object-fit: cover;">
+                            </div>
+                            <div>
+                              <h6 class="mb-0">{{ listing.name }}</h6>
+                              <small class="text-muted">ID: {{ listing.id }}</small>
+                            </div>
+                          </div>
+                        </td>
+                        <td>
+                          {{ listing.owner.user.get_full_name|default:listing.owner.user.username }}
+                          <br>
+                          <small class="text-muted">{{ listing.owner.user.email }}</small>
+                        </td>
+                        <td>{{ listing.address }}</td>
+                        <td>{{ listing.parking_spaces }}</td>
+                        <td>{{ listing.monitor.dateTimeLastUpdated|default:''|date:"M d, Y" }}</td>
+                        <td>
+                          <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#viewModal{{ listing.id }}">
+                              <i class="fas fa-eye me-1"></i> View
+                            </button>
+                            <button class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#approveModal{{ listing.id }}">
+                              <i class="fas fa-check me-1"></i> Approve
+                            </button>
+                            <button class="btn btn-sm btn-danger" data-bs-toggle="modal" data-bs-target="#rejectModal{{ listing.id }}">
+                              <i class="fas fa-times me-1"></i> Reject
+                            </button>
+                          </div>
+                          
+                          <!-- View Details Modal -->
+                          <div class="modal fade" id="viewModal{{ listing.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                              <div class="modal-content">
+                                <div class="modal-header">
+                                  <h5 class="modal-title">Parking Lot Details</h5>
+                                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                  <div class="row">
+                                    <div class="col-md-5">
+                                      <img src="{{ listing.get_image_url }}" alt="{{ listing.name }}" class="img-fluid rounded mb-3">
+                                      
+                                      <h6>Parking Lot Monitor</h6>
+                                      {% with monitor=listing.parkinglotmonitor_set.first %}
+                                        {% if monitor %}
+                                          <div class="card bg-light mb-3">
+                                            <div class="card-body p-3">
+                                              <p class="mb-1"><strong>Monitor Name:</strong> {{ monitor.name }}</p>
+                                              <p class="mb-1"><strong>Location:</strong> {{ monitor.latitude }}, {{ monitor.longitude }}</p>
+                                              {% if monitor.camera_stream_url %}
+                                                <p class="mb-1"><strong>Camera URL:</strong> {{ monitor.camera_stream_url }}</p>
+                                              {% endif %}
+                                            </div>
+                                          </div>
+                                        {% else %}
+                                          <p class="text-muted">No monitor information available</p>
+                                        {% endif %}
+                                      {% endwith %}
+                                    </div>
+                                    <div class="col-md-7">
+                                      <h4>{{ listing.name }}</h4>
+                                      <p><i class="fas fa-map-marker-alt me-2"></i> {{ listing.address }}</p>
+                                      
+                                      <div class="row mb-3">
+                                        <div class="col-sm-6">
+                                          <p><strong>Hours:</strong> {{ listing.hours }}</p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                          <p><strong>Paid Parking:</strong> {{ listing.isPaidParking|yesno:"Yes,No" }}</p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                          <p><strong>Spaces:</strong> {{ listing.parking_spaces }}</p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                          <p><strong>Base Price:</strong> £{{ listing.base_price_per_hour }}</p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                          <p><strong>Location:</strong> {{ listing.latitude }}, {{ listing.longitude }}</p>
+                                        </div>
+                                        <div class="col-sm-6">
+                                          <p><strong>Status:</strong> <span class="badge bg-warning">{{ listing.status|title }}</span></p>
+                                        </div>
+                                      </div>
+                                      
+                                      <h6>Owner Information</h6>
+                                      <div class="card bg-light mb-3">
+                                        <div class="card-body p-3">
+                                          <p class="mb-1"><strong>Name:</strong> {{ listing.owner.user.get_full_name|default:listing.owner.user.username }}</p>
+                                          <p class="mb-1"><strong>Email:</strong> {{ listing.owner.user.email }}</p>
+                                          <p class="mb-0"><strong>Phone:</strong> {{ listing.owner.phone_number|default:"Not provided" }}</p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                                <div class="modal-footer">
+                                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- Approve Modal -->
+                          <div class="modal fade" id="approveModal{{ listing.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                              <div class="modal-content">
+                                <form method="post" action="{% url 'approve_parking_lot' %}">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                                  <input type="hidden" name="action" value="approve">
+                                  
+                                  <div class="modal-header bg-success text-white">
+                                    <h5 class="modal-title">Approve Parking Lot</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <p>Are you sure you want to approve <strong>{{ listing.name }}</strong>?</p>
+                                    <p>This will make the parking lot visible to all users on the website.</p>
+                                    
+                                    <div class="mb-3">
+                                      <label for="admin_notes{{ listing.id }}" class="form-label">Admin Notes (Optional)</label>
+                                      <textarea class="form-control" id="admin_notes{{ listing.id }}" name="admin_notes" rows="3" placeholder="Add any notes or special instructions for the lot owner"></textarea>
+                                    </div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-success">Approve Parking Lot</button>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          <!-- Reject Modal -->
+                          <div class="modal fade" id="rejectModal{{ listing.id }}" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog">
+                              <div class="modal-content">
+                                <form method="post" action="{% url 'approve_parking_lot' %}">
+                                  {% csrf_token %}
+                                  <input type="hidden" name="listing_id" value="{{ listing.id }}">
+                                  <input type="hidden" name="action" value="reject">
+                                  
+                                  <div class="modal-header bg-danger text-white">
+                                    <h5 class="modal-title">Reject Parking Lot</h5>
+                                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                                  </div>
+                                  <div class="modal-body">
+                                    <p>Are you sure you want to reject <strong>{{ listing.name }}</strong>?</p>
+                                    <p>The owner will be notified and may resubmit with corrections.</p>
+                                    
+                                    <div class="mb-3">
+                                      <label for="reject_reason{{ listing.id }}" class="form-label">Rejection Reason <span class="text-danger">*</span></label>
+                                      <textarea class="form-control" id="reject_reason{{ listing.id }}" name="admin_notes" rows="3" placeholder="Explain why this registration is being rejected" required></textarea>
+                                      <div class="form-text">This will be visible to the parking lot owner.</div>
+                                    </div>
+                                  </div>
+                                  <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                    <button type="submit" class="btn btn-danger">Reject Parking Lot</button>
+                                  </div>
+                                </form>
+                              </div>
+                            </div>
+                          </div>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="text-center py-5">
+                <div class="mb-4">
+                  <i class="fas fa-check-circle fa-3x text-muted"></i>
+                </div>
+                <h3 class="h5 mb-3">No Pending Approvals</h3>
+                <p class="text-muted mb-4">There are no parking lot registrations waiting for your approval.</p>
+              </div>
+            {% endif %}
+            
+          {% elif user.profile.user_type == 'lot_owner' %}
             <!-- Space Owner Content -->
             <div class="d-flex justify-content-between align-items-center mb-4">
               <h2 class="h4 mb-0 fw-bold">My Listings</h2>
@@ -73,68 +283,195 @@
               </a>
             </div>
 
-            {% if active_listings %}
-            <div class="row g-4">
-              {% for listing in active_listings %}
-              <div class="col-md-6 col-xl-4">
-                <div class="card shadow-sm h-100">
-                  <img src="{{ listing.get_image_url }}" class="card-img-top listing-image" alt="{{ listing.name }}">
-                  <div class="card-body">
-                    <h5 class="card-title fw-bold">{{ listing.name }}</h5>
-                    <p class="text-muted mb-2">
-                      <i class="fas fa-map-marker-alt me-2"></i>
-                      {{ listing.address|truncatechars:30 }}
-                    </p>
-                    <div class="d-flex justify-content-between align-items-center">
-                      <div>
-                        <span class="badge bg-success">Active</span>
-                        <div class="mt-2">
-                          <span class="h5">£{{ listing.base_price_per_hour }}</span>
-                          <span class="text-muted">/hour</span>
+            <!-- Status Pills -->
+            <ul class="nav nav-pills mb-4">
+              <li class="nav-item">
+                <a class="nav-link active" id="live-tab" data-bs-toggle="pill" href="#live" role="tab">
+                  Live <span class="badge bg-primary ms-1">{{ live_listings|length }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="pending-tab" data-bs-toggle="pill" href="#pending" role="tab">
+                  Pending <span class="badge bg-warning ms-1">{{ pending_listings|length }}</span>
+                </a>
+              </li>
+              <li class="nav-item">
+                <a class="nav-link" id="rejected-tab" data-bs-toggle="pill" href="#rejected" role="tab">
+                  Rejected <span class="badge bg-danger ms-1">{{ rejected_listings|length }}</span>
+                </a>
+              </li>
+            </ul>
+
+            <div class="tab-content">
+              <!-- Live Listings -->
+              <div class="tab-pane fade show active" id="live" role="tabpanel">
+                {% if live_listings %}
+                <div class="row g-4">
+                  {% for listing in live_listings %}
+                  <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-sm h-100">
+                      <img src="{{ listing.get_image_url }}" class="card-img-top listing-image" alt="{{ listing.name }}" style="height: 160px; object-fit: cover;">
+                      <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ listing.name }}</h5>
+                        <p class="text-muted mb-2">
+                          <i class="fas fa-map-marker-alt me-2"></i>
+                          {{ listing.address|truncatechars:30 }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <span class="badge bg-success">Live</span>
+                            <div class="mt-2">
+                              <span class="h5">£{{ listing.base_price_per_hour }}</span>
+                              <span class="text-muted">/hour</span>
+                            </div>
+                          </div>
+                          <div class="dropdown">
+                            <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                              <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="{% url 'edit_listing' listing.pk %}">
+                                  <i class="fas fa-edit me-2"></i>Edit
+                                </a>
+                              </li>
+                              <li><hr class="dropdown-divider"></li>
+                              <li>
+                                <a class="dropdown-item text-danger" href="{% url 'delete_listing' listing.pk %}">
+                                  <i class="fas fa-trash me-2"></i>Delete
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
                         </div>
-                      </div>
-                      <div class="dropdown">
-                        <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
-                          <i class="fas fa-ellipsis-v"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                          <li>
-                            <a class="dropdown-item" href="{% url 'edit_listing' listing.pk %}">
-                              <i class="fas fa-edit me-2"></i>Edit
-                            </a>
-                          </li>
-                          <!-- <li>
-                            <a class="dropdown-item" href="{% url 'view_listing' listing.pk %}">
-                              <i class="fas fa-eye me-2"></i>View
-                            </a>
-                          </li> -->
-                          <li><hr class="dropdown-divider"></li>
-                          <li>
-                            <a class="dropdown-item text-danger" href="{% url 'delete_listing' listing.pk %}">
-                              <i class="fas fa-trash me-2"></i>Delete
-                            </a>
-                          </li>
-                        </ul>
                       </div>
                     </div>
                   </div>
+                  {% endfor %}
                 </div>
+                {% else %}
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    <i class="fas fa-car fa-3x text-muted"></i>
+                  </div>
+                  <h3 class="h5 mb-3">No Live Listings</h3>
+                  <p class="text-muted mb-4">You don't have any approved listings yet. Check your pending listings.</p>
+                </div>
+                {% endif %}
               </div>
-              {% endfor %}
-            </div>
-            {% else %}
-            <div class="text-center py-5">
-              <div class="mb-4">
-                <i class="fas fa-car fa-3x text-muted"></i>
-              </div>
-              <h3 class="h5 mb-3">No Active Listings</h3>
-              <p class="text-muted mb-4">Start earning money by listing your parking space</p>
-              <a href="{% url 'create_listing' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>List Your Space
-              </a>
-            </div>
-            {% endif %}
 
+              <!-- Pending Listings -->
+              <div class="tab-pane fade" id="pending" role="tabpanel">
+                {% if pending_listings %}
+                <div class="row g-4">
+                  {% for listing in pending_listings %}
+                  <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-sm h-100">
+                      <div class="position-absolute top-0 end-0 p-2">
+                        <span class="badge bg-warning">Pending Approval</span>
+                      </div>
+                      <img src="{{ listing.get_image_url }}" class="card-img-top listing-image" alt="{{ listing.name }}" style="height: 160px; object-fit: cover;">
+                      <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ listing.name }}</h5>
+                        <p class="text-muted mb-2">
+                          <i class="fas fa-map-marker-alt me-2"></i>
+                          {{ listing.address|truncatechars:30 }}
+                        </p>
+                        <p class="text-muted mb-2">
+                          <i class="fas fa-calendar-alt me-2"></i>
+                          Submitted on {{ listing.dateTimeLastUpdated|date:"M d, Y" }}
+                        </p>
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div>
+                            <div class="mt-2">
+                              <span class="h5">£{{ listing.base_price_per_hour }}</span>
+                              <span class="text-muted">/hour</span>
+                            </div>
+                          </div>
+                          <div class="dropdown">
+                            <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                              <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item" href="{% url 'view_listing' listing.pk %}">
+                                  <i class="fas fa-eye me-2"></i>View Details
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    <i class="fas fa-hourglass-half fa-3x text-muted"></i>
+                  </div>
+                  <h3 class="h5 mb-3">No Pending Listings</h3>
+                  <p class="text-muted mb-4">You don't have any listings pending approval.</p>
+                </div>
+                {% endif %}
+              </div>
+
+              <!-- Rejected Listings -->
+              <div class="tab-pane fade" id="rejected" role="tabpanel">
+                {% if rejected_listings %}
+                <div class="row g-4">
+                  {% for listing in rejected_listings %}
+                  <div class="col-md-6 col-xl-4">
+                    <div class="card shadow-sm h-100 border-danger">
+                      <div class="position-absolute top-0 end-0 p-2">
+                        <span class="badge bg-danger">Rejected</span>
+                      </div>
+                      <img src="{{ listing.get_image_url }}" class="card-img-top listing-image" alt="{{ listing.name }}" style="height: 160px; object-fit: cover;">
+                      <div class="card-body">
+                        <h5 class="card-title fw-bold">{{ listing.name }}</h5>
+                        <p class="text-muted mb-2">
+                          <i class="fas fa-map-marker-alt me-2"></i>
+                          {{ listing.address|truncatechars:30 }}
+                        </p>
+                        {% if listing.admin_notes %}
+                        <div class="alert alert-danger small">
+                          <i class="fas fa-info-circle me-2"></i> Admin notes: {{ listing.admin_notes }}
+                        </div>
+                        {% endif %}
+                        <div class="d-flex justify-content-between align-items-center">
+                          <div class="mt-2">
+                            <a href="{% url 'edit_listing' listing.pk %}" class="btn btn-sm btn-outline-primary">Edit & Resubmit</a>
+                          </div>
+                          <div class="dropdown">
+                            <button class="btn btn-link text-dark" type="button" data-bs-toggle="dropdown">
+                              <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-menu-end">
+                              <li>
+                                <a class="dropdown-item text-danger" href="{% url 'delete_listing' listing.pk %}">
+                                  <i class="fas fa-trash me-2"></i>Delete
+                                </a>
+                              </li>
+                            </ul>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5">
+                  <div class="mb-4">
+                    <i class="fas fa-check-circle fa-3x text-muted"></i>
+                  </div>
+                  <h3 class="h5 mb-3">No Rejected Listings</h3>
+                  <p class="text-muted mb-4">You don't have any rejected listings.</p>
+                </div>
+                {% endif %}
+              </div>
+            </div>
           {% else %}
             <!-- No driver content, bookings and payments removed -->
             <div class="text-center py-5">
