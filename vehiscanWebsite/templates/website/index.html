@@ -63,7 +63,7 @@
 {% block main %}
 <!-- Hero Section -->
 <section class="hero-section position-relative">
-  <video class="hero-bg-video" autoplay loop muted playsinline poster="{% static 'images/parkhere-bg.jpg' %}">
+  <video class="hero-bg-video" autoplay loop muted playsinline poster="{% static 'images/park-bg.jpg' %}">
     <source src="{% static 'videos/parking-lot.mp4' %}" type="video/mp4">
   </video>
   <div class="container hero-content">
@@ -236,25 +236,32 @@
 </section>
 
 <!-- Contact Section -->
-<section class="contact-section py-5">
+<section class="contact-section py-5" id="contact">
   <div class="container">
     <div class="row justify-content-center">
       <div class="col-lg-7">
         <h2 class="mb-4 text-center">Contact Us</h2>
-        <form method="post" action="#">
+        <form method="post" action="{% url 'contact' %}" id="contactForm">
+          {% csrf_token %}
           <div class="row mb-3">
             <div class="col-md-6 mb-3 mb-md-0">
-              <input type="text" class="form-control" placeholder="Name" required>
+              <input type="text" name="name" class="form-control" placeholder="Name" required>
             </div>
             <div class="col-md-6">
-              <input type="email" class="form-control" placeholder="Email" required>
+              <input type="email" name="email" class="form-control" placeholder="Email" required>
             </div>
           </div>
           <div class="mb-3">
-            <textarea class="form-control" rows="4" placeholder="Your Message" required></textarea>
+            <input type="text" name="subject" class="form-control" placeholder="Subject" required>
+          </div>
+          <div class="mb-3">
+            <textarea name="message" class="form-control" rows="12" placeholder="Your Message" required></textarea>
           </div>
           <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg">Send Message</button>
+            <button type="submit" class="btn btn-primary btn-lg" id="submitBtn">
+              <span>Send Message</span>
+              <span class="spinner-border spinner-border-sm ms-2 d-none" id="submitSpinner" role="status" aria-hidden="true"></span>
+            </button>
           </div>
         </form>
       </div>
@@ -283,7 +290,7 @@ document.addEventListener('DOMContentLoaded', function() {
         attribution: '&copy; OpenStreetMap contributors',
         maxZoom: 5
     }).addTo(map);
-5
+
     // Parse parking lots data or use empty array if none
     const locations = [
         {% for parking_lot in parking_lots %}
@@ -318,6 +325,24 @@ document.addEventListener('DOMContentLoaded', function() {
     if (locations.length > 0) {
         const bounds = L.latLngBounds(locations.map(loc => [loc.lat, loc.lng]));
         map.fitBounds(bounds, { padding: [50, 50] });
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle contact form submission with loading spinner
+    const contactForm = document.getElementById('contactForm');
+    if (contactForm) {
+        contactForm.addEventListener('submit', function() {
+            const submitBtn = document.getElementById('submitBtn');
+            const spinner = document.getElementById('submitSpinner');
+            
+            // Disable button and show spinner
+            submitBtn.disabled = true;
+            spinner.classList.remove('d-none');
+            
+            // Change button text
+            submitBtn.querySelector('span').textContent = 'Sending...';
+        });
     }
 });
 </script>
