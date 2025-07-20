@@ -124,14 +124,15 @@ class MotionDetector:
         return cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
 
     def _draw_detections(self, frame: Mat, boxes: list):
-        for box in boxes:
-            x1, y1, x2, y2 = map(int, box)
-            cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_BLUE, 2)
+        pass
+        # for box in boxes:
+        #     x1, y1, x2, y2 = map(int, box)
+        #     cv2.rectangle(frame, (x1, y1), (x2, y2), COLOR_BLUE, 2)
 
     # Original preserved methods
     def display_image(self, video_frame: Mat):
         for spot in self.parking_spots:
-            color = COLOR_GREEN if spot.is_occupied else COLOR_BLUE
+            color = COLOR_BLUE if spot.is_occupied else COLOR_GREEN
             draw_contours(video_frame, spot.coordinates,
                          str(spot.parking_spot_id), COLOR_WHITE, color)
         imshow("Press q to quit", video_frame)

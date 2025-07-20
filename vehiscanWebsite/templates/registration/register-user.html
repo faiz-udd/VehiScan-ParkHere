@@ -2,15 +2,97 @@
 
 {% block title %}Register{% endblock %}
 {% load static %}
+{% block head %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  body { font-family: 'Roboto', Arial, sans-serif; background: #f5f6fa; }
+  h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', Arial, sans-serif; }
+  .register-glass-card {
+    background: rgba(255,255,255,0.18);
+    box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 1.5rem;
+    border: 1px solid rgba(255,255,255,0.24);
+    padding: 2.5rem 2rem;
+    z-index: 1;
+  }
+  .register-sidebar {
+    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    color: #fff !important;
+    border-radius: 1.5rem 0 0 1.5rem;
+    min-width:160px;
+    min-height: 100%;
+    box-shadow: 0 2px 16px rgba(44,184,243,0.10);
+  }
+  .register-sidebar h2, .register-sidebar p { color: #fff; }
+  .register-form-btn, .btn-success {
+    background: linear-gradient(90deg, #2dc98a 0%, #44b8f3 100%);
+    border: none;
+    color: #fff;
+    font-weight: 700;
+    border-radius: 2rem;
+    transition: background 0.2s, box-shadow 0.2s;
+    box-shadow: 0 2px 8px rgba(44,184,243,0.10);
+  }
+  .register-form-btn:hover, .btn-success:hover {
+    background: linear-gradient(90deg, #44b8f3 0%, #2dc98a 100%);
+    color: #fff;
+    box-shadow: 0 8px 32px rgba(44,184,243,0.18);
+  }
+  .input-group-text {
+    background: #f5f6fa;
+    border: none;
+    color: #2dc98a;
+    font-size: 1.1rem;
+  }
+  .form-control:focus, .form-select:focus {
+    border-color: #2dc98a;
+    box-shadow: 0 0 0 0.15rem rgba(44,184,243,0.10);
+  }
+  .card {
+    border-radius: 1.5rem;
+    overflow: hidden;
+  }
+  .form-label { font-weight: 500; color: #222; }
+  .stepper .rounded-circle {
+    background: #e9ecef;
+    color: #44b8f3;
+    font-weight: 700;
+    border: 2px solid #44b8f3;
+    transition: background 0.2s, color 0.2s;
+  }
+  .stepper .bg-primary {
+    background: #2dc98a !important;
+    color: #fff !important;
+    border-color: #2dc98a !important;
+  }
+  .stepper .bg-secondary {
+    background: #e9ecef !important;
+    color: #44b8f3 !important;
+    border-color: #44b8f3 !important;
+  }
+  .text-link {
+    color: #44b8f3;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .text-link:hover { color: #2dc98a; }
+  .toast-success { background: #2dc98a; color: #fff; }
+  .toast-danger { background: #e74c3c; color: #fff; }
+</style>
+{% endblock %}
 
 {% block main %}
 <div class="container min-vh-100 d-flex align-items-center justify-content-center" style="background-color: #f5f6fa;">
     <div class="row w-100 justify-content-center">
-        <div class="col-md-8 col-lg-7">
-            <div class="card shadow-sm border-0" style="background-color: #fff;">
+        <div class="col-12 col-md-8 col-lg-7">
+            <div class="card shadow-sm border-0 register-glass-card">
                 <div class="row g-0 flex-md-row flex-column">
-                    <!-- Sidebar (short, minimal) -->
-                    <div class="col-md-4 bg-dark text-light d-flex flex-column justify-content-center align-items-center p-4 rounded-start" style="min-width:160px; min-height:160px;">
+                    <!-- Sidebar -->
+                    <div class="col-md-4 register-sidebar d-flex flex-column justify-content-center align-items-center p-4">
                         <h2 class="mb-2 text-center fs-5">Welcome!</h2>
                         <p class="mb-0 text-center small">Create your account to get started.</p>
                         <div class="text-center mt-4">
@@ -22,58 +104,80 @@
                     </div>
                     <!-- Registration Form -->
                     <div class="col-md-8 d-flex align-items-center">
-                        <div class="w-100 p-4">
+                        <div class="w-100 p-4" style="min-height: 420px; display: flex; flex-direction: column; justify-content: center;">
                             <!-- Step Indicator -->
-                            <div class="d-flex justify-content-between align-items-center mb-4">
+                            <div class="d-flex justify-content-between align-items-center mb-4 stepper">
                                 <div class="text-center flex-fill">
                                     <div class="rounded-circle bg-primary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">1</div>
-                                    <div class="small">Account</div>
+                                    <div class="small">Email</div>
                                 </div>
                                 <div class="flex-fill border-top border-2 mx-1" style="border-color:#dee2e6 !important;"></div>
                                 <div class="text-center flex-fill">
                                     <div class="rounded-circle bg-secondary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">2</div>
-                                    <div class="small">Personal</div>
+                                    <div class="small">OTP & Password</div>
                                 </div>
                                 <div class="flex-fill border-top border-2 mx-1" style="border-color:#dee2e6 !important;"></div>
                                 <div class="text-center flex-fill">
                                     <div class="rounded-circle bg-secondary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">3</div>
+                                    <div class="small">Personal</div>
+                                </div>
+                                <div class="flex-fill border-top border-2 mx-1" style="border-color:#dee2e6 !important;"></div>
+                                <div class="text-center flex-fill">
+                                    <div class="rounded-circle bg-secondary text-light mx-auto mb-1" style="width:32px;height:32px;line-height:32px;">4</div>
                                     <div class="small">Role & Photo</div>
                                 </div>
                             </div>
                             <form id="registrationForm" method="post" enctype="multipart/form-data" action="{% url 'register-user' %}">
                                 {% csrf_token %}
-                                <!-- Step 1: Account Information -->
+                                <!-- Step 1: Email -->
                                 <div class="form-section" id="step1" style="display:block;">
-                                    <h4 class="mb-4">Account Information</h4>
+                                    <h4 class="mb-4">Enter Your Email</h4>
                                     <div class="mb-3">
                                         <label class="form-label">Email Address</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-envelope"></i></span>
-                                            <input type="email" name="email" class="form-control" required>
+                                            <input type="email" name="email" id="regEmail" class="form-control" required>
                                         </div>
+                                    </div>
+                                    <div class="d-flex justify-content-center">
+                                        <button type="button" id="sendOtpBtn" class="btn register-form-btn px-5 py-2" onclick="sendOtp()" style="font-size:1rem; min-width:180px;">
+                                            <span id="sendOtpBtnText"><i class="fas fa-paper-plane me-2"></i>Send OTP</span>
+                                            <span id="sendOtpBtnSpinner" class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true"></span>
+                                        </button>
+                                    </div>
+                                </div>
+                                <!-- Step 2: OTP & Password -->
+                                <div class="form-section" id="step2" style="display:none;">
+                                    <h4 class="mb-4">Verify OTP & Set Password</h4>
+                                    <div class="mb-3">
+                                        <label class="form-label">OTP (sent to your email)</label>
+                                        <input type="text" name="otp" id="regOtp" class="form-control" required>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Password</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                            <input type="password" name="password" class="form-control" required>
+                                            <input type="password" name="password" id="regPassword" class="form-control" required>
                                         </div>
                                     </div>
                                     <div class="mb-3">
                                         <label class="form-label">Confirm Password</label>
                                         <div class="input-group">
                                             <span class="input-group-text"><i class="fas fa-lock"></i></span>
-                                            <input type="password" name="confirm_password" class="form-control" required>
+                                            <input type="password" name="confirm_password" id="regConfirmPassword" class="form-control" required>
                                         </div>
                                     </div>
-                                    <div class="d-flex justify-content-center">
-                                        <button type="button" class="btn btn-primary px-5 py-1" style="font-size:0.95rem; min-width:180px;" onclick="nextStep(2)">
+                                    <div class="d-flex gap-2">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                            <i class="fas fa-arrow-left me-2"></i> Back
+                                        </button>
+                                        <button type="button" class="btn register-form-btn px-5 py-2 flex-grow-1" style="font-size:1rem; min-width:180px;" onclick=verifyOtpAndNext()>
                                             <i class="fas fa-arrow-right me-2"></i>Continue
                                         </button>
                                     </div>
                                 </div>
-                                <!-- Step 2: Personal Information -->
-                                <div class="form-section" id="step2" style="display:none;">
+                                <!-- Step 3: Personal Information -->
+                                <div class="form-section" id="step3" style="display:none;">
                                     <h4 class="mb-4">Personal Information</h4>
                                     <div class="row mb-3">
                                         <div class="col">
@@ -93,16 +197,16 @@
                                         </div>
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(1)">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
                                             <i class="fas fa-arrow-left me-2"></i> Back
                                         </button>
-                                        <button type="button" class="btn btn-primary px-5 py-1 flex-grow-1" style="font-size:0.95rem; min-width:180px;" onclick="nextStep(3)">
+                                        <button type="button" class="btn register-form-btn px-5 py-2 flex-grow-1" style="font-size:1rem; min-width:180px;" onclick="nextStep(4)">
                                             <i class="fas fa-arrow-right me-2"></i>Continue
                                         </button>
                                     </div>
                                 </div>
-                                <!-- Step 3: Role & Profile Picture -->
-                                <div class="form-section" id="step3" style="display:none;">
+                                <!-- Step 4: Role & Profile Picture -->
+                                <div class="form-section" id="step4" style="display:none;">
                                     <h4 class="mb-4">Role & Profile Picture</h4>
                                     <div class="mb-3">
                                         <label class="form-label">Role</label>
@@ -118,19 +222,18 @@
                                         <input type="file" name="avatar" class="form-control" accept="image/*">
                                     </div>
                                     <div class="d-flex gap-2">
-                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(2)">
+                                        <button type="button" class="btn btn-outline-secondary" onclick="prevStep(3)">
                                             <i class="fas fa-arrow-left me-2"></i> Back
                                         </button>
-                                        <button type="submit" class="btn btn-success flex-grow-1 px-5 py-1" style="font-size:0.95rem; min-width:180px;">
+                                        <button type="submit" class="btn btn-success flex-grow-1 px-5 py-2" style="font-size:1rem; min-width:180px;">
                                             <i class="fas fa-check me-2"></i>Complete Registration
                                         </button>
                                     </div>
                                 </div>
                             </form>
-                            <!-- Stepper JS -->
+                            <!-- Stepper & OTP JS -->
                             <script>
                                 function nextStep(step) {
-                                    if (!validateStep(step - 1)) return;
                                     document.querySelectorAll('.form-section').forEach(section => {
                                         section.style.display = 'none';
                                     });
@@ -162,41 +265,96 @@
                                         }
                                     });
                                 }
-                                function validateStep(step) {
-                                    const section = document.getElementById(`step${step}`);
-                                    const inputs = section.querySelectorAll('input[required], select[required]');
-                                    let valid = true;
-                                    inputs.forEach(input => {
-                                        if (!input.value) {
-                                            input.classList.add('is-invalid');
-                                            valid = false;
-                                        } else {
-                                            input.classList.remove('is-invalid');
-                                        }
-                                    });
-                                    if (step === 1) {
-                                        const password = section.querySelector('input[name="password"]');
-                                        const confirm = section.querySelector('input[name="confirm_password"]');
-                                        if (password.value !== confirm.value) {
-                                            confirm.classList.add('is-invalid');
-                                            valid = false;
-                                        }
+                                // Send OTP
+                                function sendOtp() {
+                                    const email = document.getElementById('regEmail').value;
+                                    if (!email) {
+                                        showToast('Please enter your email.', false);
+                                        return;
                                     }
-                                    // Profile picture validation (only images)
-                                    if (step === 3) {
-                                        const fileInput = section.querySelector('input[type="file"]');
-                                        if (fileInput && fileInput.value) {
-                                            const file = fileInput.files[0];
-                                            if (file && !file.type.startsWith('image/')) {
-                                                fileInput.classList.add('is-invalid');
-                                                valid = false;
+                                    // Show spinner and disable button
+                                    document.getElementById('sendOtpBtnSpinner').classList.remove('d-none');
+                                    document.getElementById('sendOtpBtnText').classList.add('d-none');
+                                    document.getElementById('sendOtpBtn').disabled = true;
+
+                                    fetch("{% url 'send_otp' %}", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/x-www-form-urlencoded",
+                                            "X-CSRFToken": "{{ csrf_token }}"
+                                        },
+                                        body: "email=" + encodeURIComponent(email)
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showToast('OTP sent to your email!');
+                                            nextStep(2);
+                                        } else {
+                                            showToast(data.message || 'Failed to send OTP.', false);
+                                        }
+                                    })
+                                    .catch(() => showToast('Failed to send OTP.', false))
+                                    .finally(() => {
+                                        // Hide spinner and enable button
+                                        document.getElementById('sendOtpBtnSpinner').classList.add('d-none');
+                                        document.getElementById('sendOtpBtnText').classList.remove('d-none');
+                                        document.getElementById('sendOtpBtn').disabled = false;
+                                    });
+                                }
+                                // Verify OTP
+                                function verifyOtpAndNext() {
+                                    const email = document.getElementById('regEmail').value;
+                                    const otp = document.getElementById('regOtp').value;
+                                    if (!otp) {
+                                        showToast('Please enter the OTP.', false);
+                                        return;
+                                    }
+                                    fetch("{% url 'verify_otp' %}", {
+                                        method: "POST",
+                                        headers: {
+                                            "Content-Type": "application/x-www-form-urlencoded",
+                                            "X-CSRFToken": "{{ csrf_token }}"
+                                        },
+                                        body: "email=" + encodeURIComponent(email) + "&otp=" + encodeURIComponent(otp)
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showToast('OTP verified!');
+                                            nextStep(3);
+                                        } else {
+                                            showToast(data.message || 'Invalid OTP.', false);
+                                        }
+                                    })
+                                    .catch(() => showToast('Failed to verify OTP.', false));
+                                }
+                                // Register (submit form via AJAX)
+                                document.getElementById('registrationForm').onsubmit = function(e) {
+                                    e.preventDefault();
+                                    const formData = new FormData(this);
+                                    fetch("{% url 'register-user' %}", {
+                                        method: "POST",
+                                        headers: {
+                                            "X-CSRFToken": "{{ csrf_token }}"
+                                        },
+                                        body: formData
+                                    })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            showToast('Registration successful!');
+                                            setTimeout(() => window.location.href = "{% url 'home' %}", 1500);
+                                        } else {
+                                            if (data.errors) {
+                                                data.errors.forEach(msg => showToast(msg, false));
                                             } else {
-                                                fileInput.classList.remove('is-invalid');
+                                                showToast('Registration failed.', false);
                                             }
                                         }
-                                    }
-                                    return valid;
-                                }
+                                    })
+                                    .catch(() => showToast('Registration failed.', false));
+                                };
                             </script>
                         </div>
                     </div>
@@ -205,4 +363,24 @@
         </div>
     </div>
 </div>
+<div aria-live="polite" aria-atomic="true" class="position-fixed bottom-0 end-0 p-3" style="z-index: 9999">
+  <div id="toastContainer"></div>
+</div>
+<script>
+function showToast(message, success=true) {
+    const toastId = 'toast' + Date.now();
+    const toastHtml = `
+    <div id="${toastId}" class="toast align-items-center text-white ${success ? 'toast-success' : 'toast-danger'} border-0 mb-2" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+      </div>
+    </div>`;
+    document.getElementById('toastContainer').insertAdjacentHTML('beforeend', toastHtml);
+    const toastEl = document.getElementById(toastId);
+    const toast = new bootstrap.Toast(toastEl);
+    toast.show();
+    toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+}
+</script>
 {% endblock %}

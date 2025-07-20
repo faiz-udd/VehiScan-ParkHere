@@ -24,6 +24,12 @@ from django.contrib.auth.models import User
 from .forms import RegistrationForm
 from django.core.files.images import get_image_dimensions
 from django.core.exceptions import ValidationError
+import random
+from django.core.mail import send_mail
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from .models import EmailOTP
+from django.utils import timezone
 
 
 class WebPages:
@@ -35,7 +41,7 @@ class WebPages:
     PARKING_LOT_MONITORS = "website/parking-lot-monitors.html"
    
     REGISTER_USER = "registration/register-user.html"
-    LOGIN_USER = "website/login-user.html"
+    LOGIN_USER = "registration/login.html"
     PRIVACY_POLICY = "website/privacy-policy.html"
  
     
@@ -44,35 +50,22 @@ def index(request):
     return render(request, WebPages.HOME_PAGE, {"parking_lots": parking_lots})
 
 def login_user(request):
-    """
-    Authenticates and logs in a user based on their submitted username and password.
-
-    Args:
-        request: An HttpRequest object that contains metadata about the current request.
-
-    Returns:
-        If the submitted form data is valid and the user exists, redirects to the parking lots page. Otherwise,
-        redirects to the login page.
-
-    Raises:
-        None
-    """
     if request.method == "POST":  # FORM SUBMITTED
         username = request.POST["username"]
         password = request.POST["password"]
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
-            return redirect(WebPages.PARKING_LOTS)
+            return redirect('parking-lots')  # Redirect to parking lots page after logi
         else:
-            return redirect(WebPages.LOGIN_USER)
+            return redirect('login')  # Redirect to login page if authentication fails
     else:  # FORM NOT SUBMITTED
         form = AuthenticationForm()
         return render(request, WebPages.LOGIN_USER, {"form": form})
 
 def logout_user(request):
     logout(request)
-    return redirect(WebPages.HOME_PAGE)
+    return redirect('home')  # Redirect to home page after logout
 
 def parking_lot(request, parking_lot_id):
     parking_lot = get_object_or_404(ParkingLot, pk=parking_lot_id)
@@ -168,28 +161,36 @@ def register_user(request):
         user_type = request.POST.get("user_type")
         avatar = request.FILES.get("avatar")
 
-        # Validation
+        # Check OTP verification in session
+        if request.session.get('otp_verified_email') != email:
+            form_errors.append("Please verify your email address with the OTP sent before registering.")
+
         if not email or not password or not confirm_password or not first_name or not last_name or not phone or not user_type:
             form_errors.append("All fields are required.")
         if password != confirm_password:
             form_errors.append("Passwords do not match.")
         if avatar and not avatar.content_type.startswith("image/"):
             form_errors.append("Profile picture must be an image file.")
-
-        # Check if user already exists
         if User.objects.filter(username=email).exists():
             form_errors.append(f"A user with the email {email} already exists.")
             show_email_error = True
 
         if not form_errors:
-            # Create user and profile only if user doesn't exist
-            user = User.objects.create_user(
+            user, created = User.objects.get_or_create(
                 username=email,
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name
+                defaults={
+                    'email': email,
+                    'first_name': first_name,
+                    'last_name': last_name
+                }
             )
+            if created:
+                user.set_password(password)
+                user.save()
+            else:
+                # If user already exists, do not proceed
+                return JsonResponse({'success': False, 'errors': [f"A user with the email {email} already exists."]})
+
             # Only create UserProfile if it doesn't exist
             if not UserProfile.objects.filter(user=user).exists():
                 UserProfile.objects.create(
@@ -199,8 +200,10 @@ def register_user(request):
                     avatar=avatar if avatar and avatar.content_type.startswith("image/") else None
                 )
             login(request, user)
-            messages.success(request, "Registration successful.")
-            return redirect('home')
+            del request.session['otp_verified_email']
+            return JsonResponse({'success': True, 'message': 'Registration successful.'})
+
+        return JsonResponse({'success': False, 'errors': form_errors})
 
     return render(request, "registration/register-user.html", {
         "form_errors": form_errors,
@@ -386,3 +389,42 @@ def delete_listing(request, pk):
         messages.success(request, "Listing deleted successfully.")
         return redirect('account')
     return render(request, 'listings/delete.html', {'listing': listing})
+
+@csrf_exempt
+def send_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        if not email:
+            return JsonResponse({'success': False, 'message': 'Email is required.'})
+        if User.objects.filter(username=email).exists():
+            return JsonResponse({'success': False, 'message': 'A user with this email already exists.'})
+        otp = str(random.randint(100000, 999999))
+        EmailOTP.objects.update_or_create(email=email, defaults={'otp': otp})
+        send_mail(
+            'Your OTP Code',
+            f'Your OTP code is: {otp}',
+            'faiz.bscs4430@iiu.edu.pk',
+            [email],
+            fail_silently=False,
+        )
+        return JsonResponse({'success': True, 'message': 'OTP sent to your email.'})
+    return JsonResponse({'success': False, 'message': 'Invalid request.'})
+
+# views.py
+@csrf_exempt
+def verify_otp(request):
+    if request.method == 'POST':
+        email = request.POST.get('email')
+        otp = request.POST.get('otp')
+        if not email or not otp:
+            return JsonResponse({'success': False, 'message': 'Email and OTP are required.'})
+        try:
+            otp_obj = EmailOTP.objects.get(email=email, otp=otp)
+            if otp_obj.is_expired():
+                return JsonResponse({'success': False, 'message': 'OTP expired.'})
+            otp_obj.delete()  # Remove OTP after verification
+            request.session['otp_verified_email'] = email  # Mark as verified in session
+            return JsonResponse({'success': True, 'message': 'OTP verified.'})
+        except EmailOTP.DoesNotExist:
+            return JsonResponse({'success': False, 'message': 'Invalid OTP.'})
+    return JsonResponse({'success': False, 'message': 'Invalid request.'})
