@@ -2,111 +2,737 @@
 {% load static %}
 {% load custom_filters %}
 
+{% block title %}{{ parking_lot.name }} - VehiScan{% endblock %}
+
 {% block head %}
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<style>
+  /* Hero section with gradient overlay */
+  .parking-hero {
+    position: relative;
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    padding: 6rem 0 4rem;
+    border-radius: 0;
+    overflow: hidden;
+  }
+  
+  .parking-hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 100%);
+    z-index: 1;
+  }
+  
+  .breadcrumb {
+    background-color: transparent;
+  }
+  
+  .breadcrumb-item a {
+    color: rgba(255,255,255,0.8);
+    text-decoration: none;
+    transition: color 0.2s ease;
+  }
+  
+  .breadcrumb-item a:hover {
+    color: white;
+  }
+  
+  .breadcrumb-item.active {
+    color: white;
+  }
+  
+  .breadcrumb-item+.breadcrumb-item::before {
+    color: rgba(255,255,255,0.5);
+  }
+  
+  .last-updated-badge {
+    background-color: rgba(255,255,255,0.15);
+    backdrop-filter: blur(5px);
+    border-radius: 50px;
+    padding: 0.5rem 1rem;
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.9rem;
+  }
+  
+  .parking-availability {
+    background: white;
+    border-radius: 16px;
+    margin-top: -3rem;
+    position: relative;
+    z-index: 10;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+    overflow: hidden;
+  }
+  
+  .availability-indicator {
+    width: 100%;
+    height: 10px;
+    background: #e9ecef;
+    border-radius: 5px;
+    overflow: hidden;
+    position: relative;
+  }
+  
+  .availability-bar {
+    height: 100%;
+    border-radius: 5px;
+    transition: width 1.5s ease-in-out;
+  }
+  
+  .stat-card {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.05);
+    height: auto; /* Changed from height: 100% */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin-bottom: 24px; /* Ensure consistent spacing */
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+  
+  .feature-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    color: white;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .map-container {
+    height: 500px;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+  }
+  
+  #parkingMap {
+    height: 100%;
+    width: 100%;
+  }
+  
+  .section-heading {
+    position: relative;
+    padding-bottom: 1rem;
+    margin-bottom: 2rem;
+    font-weight: 700;
+  }
+  
+  .section-heading::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 80px;
+    height: 4px;
+    background: linear-gradient(to right, #2dc98a, #44b8f3);
+    border-radius: 2px;
+  }
+  
+  .price-card {
+    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    color: white;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    margin-bottom: 24px;
+  }
+  
+  .price-amount {
+    font-size: 3rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+  }
+  
+  .price-period {
+    font-size: 1.2rem;
+    font-weight: 400;
+    opacity: 0.8;
+  }
+  
+  .price-feature {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+    font-size: 0.9rem;
+  }
+  
+  .price-feature:last-child {
+    border-bottom: none;
+  }
+  
+  .amenities-list {
+    list-style-type: none;
+    padding-left: 0;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+  }
+  
+  .amenity-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: #f8f9fa;
+    border-radius: 8px;
+  }
+  
+  .amenity-item i {
+    color: #2dc98a;
+    margin-right: 0.75rem;
+  }
+  
+  .nearby-points {
+    margin-bottom: 24px;
+    height: auto; /* Changed from height: fit-content */
+  }
+  
+  .nearby-point-item {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+  }
+  
+  .nearby-point-item:last-child {
+    border-bottom: none;
+  }
+  
+  .nearby-point-icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background-color: #f0f9ff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 12px;
+    color: #44b8f3;
+    flex-shrink: 0;
+  }
+  
+  .nearby-point-content {
+    flex: 1;
+  }
+  
+  .nearby-point-title {
+    font-weight: 600;
+    margin-bottom: 2px;
+    font-size: 0.95rem;
+  }
+  
+  .nearby-point-info {
+    color: #6c757d;
+    font-size: 0.8rem;
+    margin: 0;
+  }
+  
+  .cta-section {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 16px;
+    padding: 3rem;
+    text-align: center;
+    margin-top: 3rem;
+  }
+  
+  .directions-btn {
+    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    color: white;
+    box-shadow: 0 5px 15px rgba(45, 201, 138, 0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  
+  .directions-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 20px rgba(45, 201, 138, 0.4);
+    color: white;
+  }
+  
+  .pulse-animation {
+    animation: pulse 2s infinite;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(45, 201, 138, 0.5);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(45, 201, 138, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(45, 201, 138, 0);
+    }
+  }
+  
+  .detail-stat {
+    text-align: center;
+    padding: 2rem 1rem;
+    background: #f8f9fa;
+    border-radius: 16px;
+    transition: transform 0.3s ease;
+    height: auto; /* Changed from height: fit-content */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 220px; /* Set consistent minimum height */
+  }
+  
+  .detail-stat:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.05);
+  }
+  
+  .stat-value {
+    font-size: 3rem;
+    font-weight: 700;
+    display: block;
+    color: #2dc98a;
+    margin-bottom: 0.5rem;
+  }
+  
+  .stat-icon {
+    font-size: 2rem;
+    color: #44b8f3;
+    margin-bottom: 1rem;
+  }
+  
+  .stat-label {
+    font-size: 1rem;
+    color: #495057;
+    font-weight: 500;
+  }
+
+  .street-view-container {
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    position: relative;
+    height: auto; /* Changed from height: fit-content */
+  }
+  
+  .street-view-container iframe {
+    border-radius: 12px;
+    border: none;
+    display: block;
+    height: 220px; /* Fixed height for consistent appearance */
+    width: 100%;
+  }
+  
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, #e9ecef, transparent);
+    margin: 3rem 0;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 992px) {
+    .parking-availability {
+      margin-top: 0;
+    }
+    
+    .amenities-list {
+      grid-template-columns: 1fr;
+    }
+    
+    .parking-hero {
+      padding: 4rem 0 2rem;
+    }
+    
+    .detail-stat {
+      min-height: auto;
+      padding: 1.5rem 1rem;
+    }
+    
+    .street-view-container iframe {
+      height: 180px;
+    }
+  }
+</style>
 {% endblock %}
 
 {% block main %}
-<div class="parking-hero bg-dark text-light py-5 rounded-3">
+<!-- Dynamic hero section with parking lot image -->
+<div class="parking-hero" style="background-image: url('{{ parking_lot.get_image_url }}');">
     <div class="container position-relative z-index-2">
         <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
                 <li class="breadcrumb-item">
-                    <a href="{% url 'parking-lots' %}">Parking Lots</a>
+                    <a href="{% url 'home' %}"><i class="fas fa-home me-1"></i> Home</a>
+                </li>
+                <li class="breadcrumb-item">
+                    <a href="{% url 'parking-lot-monitors' %}">Parking Lots</a>
                 </li>
                 <li class="breadcrumb-item active text-white">{{ parking_lot.name }}</li>
             </ol>
         </nav>
         <div class="row align-items-center">
-            <div class="col-md-8">
-                <h1 class="display-6 fw-bold mb-3 animate__animated animate__fadeInDown">
+            <div class="col-lg-8">
+                <h1 class="display-5 fw-bold mb-3 animate__animated animate__fadeInDown">
                     {{ parking_lot.name }}
                 </h1>
-                <div class="d-flex flex-wrap gap-3 mb-4">
-                    <div class="last-updated-badge animate__animated animate__fadeIn">
-                        <i class="fas fa-sync me-2"></i>
+                <div class="d-flex flex-wrap gap-3 mb-4 animate__animated animate__fadeIn animate__delay-1s">
+                    <div class="last-updated-badge">
+                        <i class="fas fa-sync-alt me-2"></i>
                         Updated {{ parking_lot.get_date_time_last_updated|timesince }} ago
                     </div>
+                    {% if parking_lot.isPaidParking %}
+                    <div class="last-updated-badge">
+                        <i class="fas fa-money-bill me-2"></i>
+                        PKR {{ parking_lot.base_price_per_hour }}/hour
+                    </div>
+                    {% else %}
+                    <div class="last-updated-badge">
+                        <i class="fas fa-hand-holding me-2"></i>
+                        Free Parking
+                    </div>
+                    {% endif %}
                 </div>
+                <p class="text-white mb-4 animate__animated animate__fadeIn animate__delay-2s">
+                    <i class="fas fa-map-marker-alt me-2"></i>
+                    {{ parking_lot.address }}
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Parking availability status bar -->
+<div class="container">
+    <div class="parking-availability p-4 animate__animated animate__fadeInUp">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h5 class="fw-bold mb-3">Current Availability</h5>
+                <div class="availability-indicator mb-2">
+                    <div class="availability-bar" style="width: {{ parking_lot.get_probability_parking_available }}%; background: 
+                        {% if parking_lot.get_probability_parking_available > 60 %}
+                            #2dc98a
+                        {% elif parking_lot.get_probability_parking_available > 30 %}
+                            #ffc107
+                        {% else %}
+                            #dc3545
+                        {% endif %}
+                    "></div>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <span class="small">
+                        {{ parking_lot.get_free_parking_spaces }} spaces free
+                    </span>
+                    <span class="small">
+                        {{ parking_lot.get_probability_parking_available }}% available
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                <a href="https://www.google.com/maps/dir/?api=1&destination={{ parking_lot.latitude }},{{ parking_lot.longitude }}" 
+                   class="btn directions-btn pulse-animation" target="_blank">
+                    <i class="fas fa-directions me-2"></i> Get Directions
+                </a>
             </div>
         </div>
     </div>
 </div>
 
 <div class="container py-5">
-
+    <!-- Key stats -->
+    <div class="row g-4 mb-5">
+        <div class="col-md-4">
+            <div class="detail-stat animate__animated animate__fadeIn" data-delay="100">
+                <i class="fas fa-car-alt stat-icon"></i>
+                <span class="stat-value">{{ parking_lot.get_free_parking_spaces }}</span>
+                <span class="stat-label">Available Spaces</span>
+                <div class="text-muted mt-2 small">Out of {{ parking_lot.parking_spaces }} total</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="detail-stat animate__animated animate__fadeIn" data-delay="300">
+                <i class="fas fa-clock stat-icon"></i>
+                <span class="stat-label">Operating Hours</span>
+                <div class="mt-3 fw-bold fs-5">{{ parking_lot.hours }}</div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="detail-stat animate__animated animate__fadeIn" data-delay="500">
+                <i class="fas fa-percentage stat-icon"></i>
+                <span class="stat-value">{{ parking_lot.get_probability_parking_available }}%</span>
+                <span class="stat-label">Vacancy Rate</span>
+                <div class="text-muted mt-2 small">
+                    {% if parking_lot.get_probability_parking_available > 60 %}
+                        High availability
+                    {% elif parking_lot.get_probability_parking_available > 30 %}
+                        Medium availability
+                    {% else %}
+                        Low availability
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="row g-5">
-        <!-- Main Content -->
-
-        <div class="row g-4 mb-4">
-            <div class="col-md-6 animate__animated animate__fadeInLeft">
-                <div class="card stat-card h-100 border-0">
-                    <div class="card-body p-4">
-                        <h4 class="mb-4 fw-bold"><i class="fas fa-parking me-2"></i>Availability</h4>
-                        <div class="detail-item mb-3">
-                            <h5 class="fw-bold mb-2">Available Spaces</h5>
-                            <p class="mb-0 text-dark fs-4">{{ parking_lot.get_free_parking_spaces }}</p>
-                            <small class="text-muted">Total: {{ parking_lot.parking_spaces }} spaces</small>
-                        </div>
-                        <div class="detail-item mb-3">
-                            <h5 class="fw-bold mb-2">Vacancy Rate</h5>
-                            <p class="mb-0 text-muted">{{ parking_lot.get_probability_parking_available }}% Vacancy</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-md-6 animate__animated animate__fadeInRight">
-                <div class="card stat-card h-100 border-0">
-                    <div class="card-body p-4">
-                        <h4 class="mb-4 fw-bold"><i class="fas fa-clock me-2"></i>Operating Hours</h4>
-                        <div class="detail-item">
-                            <h5 class="fw-bold mb-2">Open Daily</h5>
-                            <p class="mb-0 text-muted">{{ parking_lot.hours }}</p>
-                        </div>
-                        <div class="detail-item">
-                            <h5 class="fw-bold mb-2">Address</h5>
-                            <p class="mb-0 text-muted">{{ parking_lot.address }}</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
+        <!-- Main content -->
         <div class="col-lg-8">
-            <div class="card stat-card border-0 mb-4 animate__animated animate__fadeInUp">
-                <h3 class="card-header bg-light justify-content-center fw-bold">
-                    <i class="fas fa-info-circle me-2"></i>Click Direction to Get Map
-                </h3>
+            <h2 class="section-heading">Location</h2>
+            <div class="map-container animate__animated animate__fadeIn mb-4">
+                <div id="parkingMap"></div>
+            </div>
+            
+            <h2 class="section-heading mt-5">About This Parking Lot</h2>
+            <div class="card stat-card border-0 mb-5 animate__animated animate__fadeIn">
                 <div class="card-body p-4">
-                    <div class="gmap-container">
-                        <iframe class="gmap-iframe" style="width: 41rem; height:25rem;" src="https://maps.google.com/maps?q={{parking_lot.latitude}},{{parking_lot.longitude}}&z=17&output=embed&layer=streetview&mode=streetview"></iframe>
+                    <div class="row">
+                        <div class="col-md-6 mb-4 mb-md-0">
+                            <h5 class="fw-bold mb-3">Features</h5>
+                            <ul class="amenities-list">
+                                <li class="amenity-item">
+                                    <i class="fas fa-video"></i>
+                                    <span>24/7 CCTV Monitoring</span>
+                                </li>
+                                <li class="amenity-item">
+                                    <i class="fas fa-car-alt"></i>
+                                    <span>{{ parking_lot.parking_spaces }} Parking Spaces</span>
+                                </li>
+                                <li class="amenity-item">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <span>Well-lit Area</span>
+                                </li>
+                                <li class="amenity-item">
+                                    <i class="fas fa-walking"></i>
+                                    <span>Easy Access</span>
+                                </li>
+                                {% if parking_lot.isPaidParking %}
+                                <li class="amenity-item">
+                                    <i class="fas fa-credit-card"></i>
+                                    <span>Payment Options</span>
+                                </li>
+                                {% else %}
+                                <li class="amenity-item">
+                                    <i class="fas fa-hand-holding-usd"></i>
+                                    <span>Free Parking</span>
+                                </li>
+                                {% endif %}
+                                <li class="amenity-item">
+                                    <i class="fas fa-user-shield"></i>
+                                    <span>Security Personnel</span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <h5 class="fw-bold mb-3">Information</h5>
+                            <div class="mb-3">
+                                <div class="text-muted mb-1">Address</div>
+                                <p class="mb-0">{{ parking_lot.address }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-muted mb-1">Hours of Operation</div>
+                                <p class="mb-0">{{ parking_lot.hours }}</p>
+                            </div>
+                            <div class="mb-3">
+                                <div class="text-muted mb-1">Last Updated</div>
+                                <p class="mb-0">{{ parking_lot.get_date_time_last_updated|date:"F j, Y, g:i a" }}</p>
+                            </div>
+                            <div>
+                                <div class="text-muted mb-1">Coordinates</div>
+                                <p class="mb-0">{{ parking_lot.latitude }}, {{ parking_lot.longitude }}</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-  
         </div>
+        
+        <!-- Sidebar content -->
+        <div class="col-lg-4">
+            {% if parking_lot.isPaidParking %}
+            <div class="price-card sidebar-card animate__animated animate__fadeIn animate__delay-1s">
+                <div class="price-amount">
+                    PKR {{ parking_lot.base_price_per_hour }}
+                    <span class="price-period">/hour</span>
+                </div>
+                <div class="price-features">
+                    <div class="price-feature">
+                        <i class="fas fa-check-circle me-2"></i> Pay by hour
+                    </div>
+                    <div class="price-feature">
+                        <i class="fas fa-check-circle me-2"></i> Card payment accepted
+                    </div>
+                    <div class="price-feature">
+                        <i class="fas fa-check-circle me-2"></i> Mobile payment accepted
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            <!-- Fixed Nearby Points Section -->
+            <div class="card stat-card border-0 sidebar-card animate__animated animate__fadeIn animate__delay-2s">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Nearby Points</h5>
+                    
+                    <div class="nearby-point-item">
+                        <div class="nearby-point-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="nearby-point-content">
+                            <h6 class="nearby-point-title">Shopping Centers</h6>
+                            <p class="nearby-point-info">2 within 500m</p>
+                        </div>
+                    </div>
+                    
+                    <div class="nearby-point-item">
+                        <div class="nearby-point-icon">
+                            <i class="fas fa-utensils"></i>
+                        </div>
+                        <div class="nearby-point-content">
+                            <h6 class="nearby-point-title">Restaurants</h6>
+                            <p class="nearby-point-info">5 within 500m</p>
+                        </div>
+                    </div>
+                    
+                    <div class="nearby-point-item">
+                        <div class="nearby-point-icon">
+                            <i class="fas fa-bus"></i>
+                        </div>
+                        <div class="nearby-point-content">
+                            <h6 class="nearby-point-title">Public Transport</h6>
+                            <p class="nearby-point-info">Bus stop within 200m</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Street View -->
+            <div class="card stat-card border-0 sidebar-card animate__animated animate__fadeIn animate__delay-3s">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">Street View</h5>
+                    <div class="street-view-container">
+                        <iframe 
+                            src="https://maps.google.com/maps?q={{parking_lot.latitude}},{{parking_lot.longitude}}&z=17&output=embed&layer=streetview" 
+                            allowfullscreen loading="lazy"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- Call to action section -->
+    <div class="cta-section animate__animated animate__fadeIn animate__delay-2s">
+        <h3 class="mb-4 fw-bold">Need help finding this parking lot?</h3>
+        <p class="mb-4 text-muted mx-auto" style="max-width: 600px;">
+            Get turn-by-turn directions to {{ parking_lot.name }} directly on your phone.
+            Our system is updated in real-time to show current availability.
+        </p>
+        <a href="https://www.google.com/maps/dir/?api=1&destination={{ parking_lot.latitude }},{{ parking_lot.longitude }}" 
+           class="btn btn-lg directions-btn" target="_blank">
+            <i class="fas fa-directions me-2"></i> Get Directions Now
+        </a>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
-    // Add intersection observers for scroll animations
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize map
+        const map = L.map('parkingMap').setView([{{ parking_lot.latitude }}, {{ parking_lot.longitude }}], 16);
+        
+        // Add OpenStreetMap tiles
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+        
+        // Custom marker icon
+        const customIcon = L.divIcon({
+            className: 'custom-marker',
+            html: `
+                <div style="background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%); width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-weight: bold; box-shadow: 0 2px 10px rgba(0,0,0,0.2);">
+                    <i class="fas fa-parking"></i>
+                </div>
+            `,
+            iconSize: [40, 40],
+            iconAnchor: [20, 20],
+            popupAnchor: [0, -20]
+        });
+        
+        // Add marker for parking lot
+        const marker = L.marker([{{ parking_lot.latitude }}, {{ parking_lot.longitude }}], {
+            icon: customIcon
+        }).addTo(map);
+        
+        // Add popup with info
+        marker.bindPopup(`
+            <div style="width: 200px;">
+                <h5 style="font-weight: bold; margin-bottom: 8px;">{{ parking_lot.name }}</h5>
+                <p style="margin-bottom: 8px; font-size: 14px;">{{ parking_lot.address }}</p>
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <span style="font-weight: bold; color: 
+                        {% if parking_lot.get_probability_parking_available > 60 %}
+                            #2dc98a
+                        {% elif parking_lot.get_probability_parking_available > 30 %}
+                            #ffc107
+                        {% else %}
+                            #dc3545
+                        {% endif %}
+                    ">
+                        {{ parking_lot.get_free_parking_spaces }}/{{ parking_lot.parking_spaces }} spaces
+                    </span>
+                    <a href="https://www.google.com/maps/dir/?api=1&destination={{ parking_lot.latitude }},{{ parking_lot.longitude }}" 
+                       style="background: #2dc98a; color: white; text-decoration: none; padding: 5px 10px; border-radius: 4px; font-size: 12px;"
+                       target="_blank">
+                       <i class="fas fa-directions"></i> Directions
+                    </a>
+                </div>
+            </div>
+        `).openPopup();
+        
+        // Add intersection observers for scroll animations
         const elements = document.querySelectorAll('.animate__animated');
         const observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.style.opacity = 1;
+                    const delay = entry.target.getAttribute('data-delay') || 0;
+                    setTimeout(() => {
+                        entry.target.classList.add('animate__fadeIn');
+                        entry.target.style.opacity = 1;
+                    }, delay);
                 }
             });
         }, { threshold: 0.1 });
+        
         elements.forEach(element => {
-            element.style.opacity = 0;
-            observer.observe(element);
+            if (!element.classList.contains('animate__fadeInDown') && 
+                !element.classList.contains('animate__fadeInUp') &&
+                !element.classList.contains('animate__fadeInLeft') &&
+                !element.classList.contains('animate__fadeInRight')) {
+                element.style.opacity = 0;
+                element.classList.remove('animate__fadeIn');
+                observer.observe(element);
+            }
         });
+        
+        // Initialize availability bar width animation
+        setTimeout(() => {
+            document.querySelector('.availability-bar').style.width = '{{ parking_lot.get_probability_parking_available }}%';
+        }, 500);
     });
 </script>
 {% endblock %}

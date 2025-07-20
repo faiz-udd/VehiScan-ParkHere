@@ -1,139 +1,829 @@
 {% extends 'master.html' %}
 {% load get_distance_from_lat_lang %}
 {% load humanize %}
-{% block title %}Search{% endblock %}
+{% block title %}Find Parking Monitors - VehiScan{% endblock %}
 {% block head %}
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700&family=Roboto:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
 <style>
-  body { font-family: 'Roboto', Arial, sans-serif; background: #f5f6fa; }
-  h1, h2, h3, h4, h5, h6 { font-family: 'Poppins', Arial, sans-serif; }
-  .card { border-radius: 1.5rem; box-shadow: 0 8px 32px 0 rgba(44,184,243,0.10); border: none; background: rgba(255,255,255,0.95); }
+  body { 
+    font-family: 'Roboto', Arial, sans-serif; 
+    background: #f5f6fa; 
+  }
+  
+  h1, h2, h3, h4, h5, h6 { 
+    font-family: 'Poppins', Arial, sans-serif; 
+  }
+  
+  .page-header {
+    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    padding: 3rem 0;
+    margin-bottom: 2rem;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .page-header::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMTAwIDEwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdHRlcm4gaWQ9InBhdHRlcm4iIHg9IjAiIHk9IjAiIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgcGF0dGVyblVuaXRzPSJ1c2VyU3BhY2VPblVzZSI+CjxjaXJjbGUgY3g9IjEiIGN5PSIxIiByPSIxIiBmaWxsPSJyZ2JhKDI1NSwgMjU1LCAyNTUsIDAuMSkiLz4KPC9wYXR0ZXJuPgo8cmVjdCB4PSIwIiB5PSIwIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSJ1cmwoI3BhdHRlcm4pIiAvPgo8L3N2Zz4=');
+    opacity: 0.2;
+    z-index: 1;
+  }
+  
+  .page-header .container {
+    position: relative;
+    z-index: 2;
+  }
+  
+  .search-card {
+    border-radius: 1rem;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+    border: none;
+    background: white;
+    margin-top: -3rem;
+    position: relative;
+    z-index: 10;
+  }
+  
+  .monitors-card {
+    border-radius: 1rem;
+    box-shadow: 0 8px 32px 0 rgba(44,184,243,0.10);
+    border: none;
+    background: white;
+    overflow: hidden;
+    margin-top: 2rem;
+  }
+  
   .btn-primary {
     background: linear-gradient(90deg, #2dc98a 0%, #44b8f3 100%) !important;
     border: none;
     color: #fff;
-    font-weight: 700;
+    font-weight: 600;
     border-radius: 2rem;
-    transition: background 0.2s, box-shadow 0.2s;
-    box-shadow: 0 2px 8px rgba(44,184,243,0.10);
+    transition: all 0.3s ease;
+    box-shadow: 0 5px 15px rgba(44,184,243,0.2);
+    padding: 0.75rem 2rem;
   }
+  
   .btn-primary:hover {
-    background: linear-gradient(90deg, #44b8f3 0%, #2dc98a 100%) !important;
-    color: #fff;
-    box-shadow: 0 8px 32px rgba(44,184,243,0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(44,184,243,0.3);
   }
-  .badge.bg-info { background: linear-gradient(90deg, #2dc98a 0%, #44b8f3 100%) !important; color: #fff !important; }
-  .badge.bg-success { background: #2dc98a !important; color: #fff !important; }
-  .badge.bg-warning { background: #44b8f3 !important; color: #fff !important; }
-  .fw-bold, .fw-semibold { font-family: 'Poppins', Arial, sans-serif; }
-  .table thead th { color: #2dc98a; font-weight: 700; }
-  .table-striped > tbody > tr:nth-of-type(odd) { background-color: #f5f6fa; }
-  .table > :not(:last-child) > :last-child > * { border-bottom-color: #44b8f3; }
-  .text-primary { color: #2dc98a !important; }
-  .form-control:focus { border-color: #2dc98a; box-shadow: 0 0 0 0.15rem rgba(44,184,243,0.10); }
+  
+  .btn-outline-primary {
+    color: #2dc98a;
+    border: 2px solid #2dc98a;
+    border-radius: 2rem;
+    background: transparent;
+    transition: all 0.3s ease;
+    font-weight: 500;
+  }
+  
+  .btn-outline-primary:hover {
+    background: #2dc98a;
+    color: white;
+    border-color: #2dc98a;
+  }
+  
+  .badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    border-radius: 2rem;
+  }
+  
+  .badge.bg-info {
+    background: linear-gradient(90deg, #2dc98a 0%, #44b8f3 100%) !important;
+    color: #fff !important;
+  }
+  
+  .badge.bg-success {
+    background: #2dc98a !important;
+    color: #fff !important;
+  }
+  
+  .badge.bg-warning {
+    background: #44b8f3 !important;
+    color: #fff !important;
+  }
+  
+  .table {
+    margin-bottom: 0;
+  }
+  
+  .table thead th {
+    color: #495057;
+    font-weight: 700;
+    border-top: none;
+    border-bottom: 2px solid #e9ecef;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    white-space: nowrap;
+  }
+  
+  .table tbody td {
+    padding: 1rem;
+    vertical-align: middle;
+    border-bottom: 1px solid #e9ecef;
+  }
+  
+  .table-striped > tbody > tr:nth-of-type(odd) {
+    background-color: #f8f9fa;
+  }
+  
+  .text-primary {
+    color: #2dc98a !important;
+  }
+  
+  .location-pulse {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #2dc98a;
+    cursor: pointer;
+    box-shadow: 0 0 0 rgba(45,201,138, 0.4);
+    animation: pulse 2s infinite;
+    vertical-align: middle;
+    margin-right: 8px;
+  }
+  
+  @keyframes pulse {
+    0% {
+      box-shadow: 0 0 0 0 rgba(45,201,138, 0.4);
+    }
+    70% {
+      box-shadow: 0 0 0 15px rgba(45,201,138, 0);
+    }
+    100% {
+      box-shadow: 0 0 0 0 rgba(45,201,138, 0);
+    }
+  }
+  
+  .vacancy-indicator {
+    display: inline-block;
+    width: 100%;
+    height: 6px;
+    background-color: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-top: 5px;
+  }
+  
+  .vacancy-bar {
+    height: 100%;
+    border-radius: 3px;
+  }
+  
+  .filter-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  .filter-btn {
+    padding: 0.5rem 1rem;
+    border-radius: 2rem;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+    color: #495057;
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  
+  .filter-btn:hover, .filter-btn.active {
+    background-color: #2dc98a;
+    color: white;
+    border-color: #2dc98a;
+  }
+  
+  .monitor-link {
+    font-weight: 600;
+    color: #2dc98a;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+  
+  .monitor-link:hover {
+    color: #44b8f3;
+  }
+  
+  .card-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e9ecef;
+    padding: 1rem 1.5rem;
+  }
+  
+  .search-box {
+    position: relative;
+  }
+  
+  .search-box input {
+    padding-left: 2.5rem;
+    border-radius: 2rem;
+    border: 1px solid #e9ecef;
+    padding-top: 0.6rem;
+    padding-bottom: 0.6rem;
+  }
+  
+  .search-box i {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #adb5bd;
+  }
+  
+  .search-box input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(45,201,138,0.15);
+    border-color: #2dc98a;
+  }
+  
+  /* Mobile and responsive styles */
+  @media (max-width: 992px) {
+    .table-responsive {
+      border-radius: 1rem;
+    }
+    
+    .search-card {
+      margin-top: -1.5rem;
+    }
+    
+    .page-header {
+      padding: 2rem 0;
+    }
+    
+    .card-body {
+      padding: 1rem;
+    }
+    
+    /* Custom mobile card view for table rows */
+    .mobile-card {
+      margin-bottom: 1rem;
+      border: 1px solid #e9ecef;
+      border-radius: 0.75rem;
+      overflow: hidden;
+    }
+    
+    .mobile-card-header {
+      background-color: #f8f9fa;
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #e9ecef;
+    }
+    
+    .mobile-card-body {
+      padding: 1rem;
+    }
+    
+    .mobile-card-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid #f1f3f5;
+    }
+    
+    .mobile-card-row:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+      border-bottom: none;
+    }
+    
+    .mobile-card-label {
+      color: #6c757d;
+      font-size: 0.875rem;
+    }
+    
+    .mobile-card-value {
+      font-weight: 500;
+      text-align: right;
+    }
+    
+    .mobile-card-footer {
+      padding: 0.75rem 1rem;
+      border-top: 1px solid #e9ecef;
+      background-color: #f8f9fa;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .desktop-table {
+      display: none;
+    }
+    
+    .mobile-cards {
+      display: block;
+    }
+  }
+  
+  @media (min-width: 993px) {
+    .desktop-table {
+      display: table;
+    }
+    
+    .mobile-cards {
+      display: none;
+    }
+  }
+  
+  .dropdown-menu {
+    border-radius: 0.75rem;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: none;
+    padding: 0.5rem;
+  }
+  
+  .dropdown-item {
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+  }
+  
+  .dropdown-item:hover {
+    background-color: #f8f9fa;
+  }
+  
+  .dropdown-item.active {
+    background-color: #2dc98a;
+  }
+  
+  .no-results {
+    text-align: center;
+    padding: 3rem 2rem;
+  }
+  
+  .no-results i {
+    font-size: 3rem;
+    color: #dee2e6;
+    margin-bottom: 1rem;
+  }
 </style>
 {% endblock %}
 
 {% block main %}
-<script type="text/javascript">
-    var displayElement = document.getElementById("display");
-    var searchNearMeButton = document.getElementById("search-near-me-button");
+<!-- Page header -->
+<div class="page-header">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-lg-8 text-center">
+        <h1 class="fw-bold mb-2 animate__animated animate__fadeInDown">Find Parking Monitors</h1>
+        <p class="lead mb-0 animate__animated animate__fadeIn animate__delay-1s">
+          Discover available parking spaces near you in real-time
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
+<div class="container">
+  <!-- Search card -->
+  <div class="row justify-content-center">
+    <div class="col-lg-10">
+      <div class="card search-card animate__animated animate__fadeInUp">
+        <div class="card-body p-4">
+          <div class="row g-3 align-items-center">
+            <div class="col-md-6">
+              <form method="post" class="d-flex align-items-center gap-3">
+                {% csrf_token %}
+                <input type="hidden" name="latitude" id="latitude"/>
+                <input type="hidden" name="longitude" id="longitude"/>
+                <button type="submit" id="search-near-me-button" class="btn btn-primary d-flex align-items-center gap-2">
+                  <div class="location-pulse"></div> Find Near Me
+                </button>
+              </form>
+            </div>
+            <div class="col-md-6">
+              <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-control" id="monitorSearchInput" placeholder="Search by name or address">
+              </div>
+            </div>
+          </div>
+          
+          <!-- Filter buttons -->
+          <div class="filter-container mt-3">
+            <button class="filter-btn active" data-filter="all">All</button>
+            <button class="filter-btn" data-filter="free">Free Parking</button>
+            <button class="filter-btn" data-filter="paid">Paid Parking</button>
+            <button class="filter-btn" data-filter="high-vacancy">High Availability</button>
+          </div>
+          
+          <p id="display" class="text-danger mt-2 mb-0"></p>
+        </div>
+      </div>
+      
+      <!-- Monitors table card -->
+      <div class="monitors-card animate__animated animate__fadeIn animate__delay-1s">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="fw-bold mb-0">Parking Monitors</h5>
+          <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" id="sortDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+              <i class="fas fa-sort me-1"></i> Sort by
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="sortDropdown">
+              <li><a class="dropdown-item active" href="#" data-sort="name">Name</a></li>
+              {% if user_point %}
+              <li><a class="dropdown-item" href="#" data-sort="distance">Distance</a></li>
+              {% endif %}
+              <li><a class="dropdown-item" href="#" data-sort="vacancy">Vacancy Rate</a></li>
+              <li><a class="dropdown-item" href="#" data-sort="updated">Last Updated</a></li>
+            </ul>
+          </div>
+        </div>
+        <div class="card-body p-0">
+          <!-- Desktop table view -->
+          <div class="table-responsive desktop-table">
+            <table class="table table-striped align-middle" id="monitorsTable">
+              <thead>
+                <tr>
+                  <th>Name</th>
+                  <th>Address</th>
+                  <th>Hours</th>
+                  <th>Paid Parking</th>
+                  <th>Vacancy</th>
+                  {% if user_point %}
+                  <th>Distance</th>
+                  {% endif %}
+                  <th>Last Updated</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for parking_monitor in parking_lot_monitors %}
+                <tr data-vacancy="{{ parking_monitor.get_vacancy_rate }}" 
+                    data-paid="{{ parking_monitor.parkingLot.isPaidParking|yesno:'true,false' }}"
+                    data-name="{{ parking_monitor.name|lower }}"
+                    data-address="{{ parking_monitor.parkingLot.address|lower }}">
+                  <td>
+                    <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="monitor-link">
+                      {{ parking_monitor.name }}
+                    </a>
+                  </td>
+                  <td>{{ parking_monitor.parkingLot.address }}</td>
+                  <td>{{ parking_monitor.parkingLot.hours }}</td>
+                  <td>
+                    {% if parking_monitor.parkingLot.isPaidParking %}
+                      <span class="badge bg-warning">Paid</span>
+                    {% else %}
+                      <span class="badge bg-success">Free</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <div>{{ parking_monitor.get_vacancy_rate }}%</div>
+                    <div class="vacancy-indicator">
+                      <div class="vacancy-bar" style="width: {{ parking_monitor.get_vacancy_rate }}%; background: 
+                        {% if parking_monitor.get_vacancy_rate > 60 %}
+                          #2dc98a
+                        {% elif parking_monitor.get_vacancy_rate > 30 %}
+                          #ffc107
+                        {% else %}
+                          #dc3545
+                        {% endif %}
+                      "></div>
+                    </div>
+                  </td>
+                  {% if user_point %}
+                  <td>
+                    <span class="badge bg-info">
+                      {% get_distance_from_lat_lang parking_monitor user_point.latitude user_point.longitude %} km
+                    </span>
+                  </td>
+                  {% endif %}
+                  <td>
+                    <span class="text-muted">
+                      {{ parking_monitor.dateTimeLastUpdated|naturaltime }}
+                    </span>
+                  </td>
+                  <td>
+                    <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="btn btn-sm btn-outline-primary">
+                      View
+                    </a>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="{% if user_point %}8{% else %}7{% endif %}" class="text-center py-5">
+                    <div class="no-results">
+                      <i class="fas fa-search"></i>
+                      <h4>No parking monitors found</h4>
+                      <p class="text-muted">Try adjusting your search or location</p>
+                    </div>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
+          <!-- Mobile card view -->
+          <div class="mobile-cards">
+            {% for parking_monitor in parking_lot_monitors %}
+            <div class="mobile-card" 
+                 data-vacancy="{{ parking_monitor.get_vacancy_rate }}" 
+                 data-paid="{{ parking_monitor.parkingLot.isPaidParking|yesno:'true,false' }}"
+                 data-name="{{ parking_monitor.name|lower }}"
+                 data-address="{{ parking_monitor.parkingLot.address|lower }}">
+              <div class="mobile-card-header">
+                <div class="d-flex justify-content-between align-items-center">
+                  <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="monitor-link">
+                    {{ parking_monitor.name }}
+                  </a>
+                  {% if parking_monitor.parkingLot.isPaidParking %}
+                    <span class="badge bg-warning">Paid</span>
+                  {% else %}
+                    <span class="badge bg-success">Free</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="mobile-card-body">
+                <div class="mobile-card-row">
+                  <div class="mobile-card-label">Address</div>
+                  <div class="mobile-card-value">{{ parking_monitor.parkingLot.address }}</div>
+                </div>
+                <div class="mobile-card-row">
+                  <div class="mobile-card-label">Hours</div>
+                  <div class="mobile-card-value">{{ parking_monitor.parkingLot.hours }}</div>
+                </div>
+                <div class="mobile-card-row">
+                  <div class="mobile-card-label">Vacancy</div>
+                  <div class="mobile-card-value">{{ parking_monitor.get_vacancy_rate }}%</div>
+                </div>
+                <div class="vacancy-indicator">
+                  <div class="vacancy-bar" style="width: {{ parking_monitor.get_vacancy_rate }}%; background: 
+                    {% if parking_monitor.get_vacancy_rate > 60 %}
+                      #2dc98a
+                    {% elif parking_monitor.get_vacancy_rate > 30 %}
+                      #ffc107
+                    {% else %}
+                      #dc3545
+                    {% endif %}
+                  "></div>
+                </div>
+                {% if user_point %}
+                <div class="mobile-card-row">
+                  <div class="mobile-card-label">Distance</div>
+                  <div class="mobile-card-value">
+                    <span class="badge bg-info">{% get_distance_from_lat_lang parking_monitor user_point.latitude user_point.longitude %} km</span>
+                  </div>
+                </div>
+                {% endif %}
+              </div>
+              <div class="mobile-card-footer">
+                <span class="text-muted small">{{ parking_monitor.dateTimeLastUpdated|naturaltime }}</span>
+                <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="btn btn-sm btn-outline-primary">
+                  View Details
+                </a>
+              </div>
+            </div>
+            {% empty %}
+            <div class="no-results">
+              <i class="fas fa-search"></i>
+              <h4>No parking monitors found</h4>
+              <p class="text-muted">Try adjusting your search or location</p>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Get location for search
     function setPosition() {
         if (navigator && navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(assignPositionToForm);
-            searchNearMeButton.disabled = false;
+            navigator.geolocation.getCurrentPosition(assignPositionToForm, handleError);
+            document.getElementById("search-near-me-button").disabled = false;
         }
         else {
-            displayElement.innerHTML = "Geolocation is not supported by this browser.";
-            searchNearMeButton.disabled = true;
+            document.getElementById("display").innerText = "Geolocation is not supported by this browser.";
+            document.getElementById("search-near-me-button").disabled = true;
         }
     }
+    
     function assignPositionToForm(position) {
         document.getElementById("latitude").value = position.coords.latitude;
         document.getElementById("longitude").value = position.coords.longitude;
     }
     
-    $(document).ready(documentReady);
-
-    function documentReady() {
-       setPosition();
+    function handleError(error) {
+        let errorMessage;
+        switch(error.code) {
+            case error.PERMISSION_DENIED:
+                errorMessage = "User denied the request for geolocation.";
+                break;
+            case error.POSITION_UNAVAILABLE:
+                errorMessage = "Location information is unavailable.";
+                break;
+            case error.TIMEOUT:
+                errorMessage = "The request to get user location timed out.";
+                break;
+            case error.UNKNOWN_ERROR:
+                errorMessage = "An unknown error occurred.";
+                break;
+        }
+        document.getElementById("display").innerText = errorMessage;
     }
+    
+    // Initialize location search
+    setPosition();
+    
+    // Search functionality
+    const searchInput = document.getElementById('monitorSearchInput');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const searchTerm = this.value.toLowerCase().trim();
+            filterMonitors();
+        });
+    }
+    
+    // Filter buttons
+    const filterButtons = document.querySelectorAll('.filter-btn');
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            filterButtons.forEach(btn => btn.classList.remove('active'));
+            // Add active class to clicked button
+            this.classList.add('active');
+            filterMonitors();
+        });
+    });
+    
+    // Sorting functionality
+    const sortLinks = document.querySelectorAll('.dropdown-item[data-sort]');
+    sortLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Remove active class from all links
+            sortLinks.forEach(lnk => lnk.classList.remove('active'));
+            // Add active class to clicked link
+            this.classList.add('active');
+            // Update dropdown button text
+            document.getElementById('sortDropdown').innerHTML = 
+                `<i class="fas fa-sort me-1"></i> Sort by: ${this.innerText}`;
+            // Sort monitors
+            sortMonitors(this.getAttribute('data-sort'));
+        });
+    });
+    
+    // Combined filter function
+    function filterMonitors() {
+        const searchTerm = document.getElementById('monitorSearchInput').value.toLowerCase().trim();
+        const activeFilter = document.querySelector('.filter-btn.active').getAttribute('data-filter');
+        
+        // Select all monitor rows/cards
+        const desktopRows = document.querySelectorAll('#monitorsTable tbody tr:not(:last-child)');
+        const mobileCards = document.querySelectorAll('.mobile-card');
+        
+        // Process desktop rows
+        desktopRows.forEach(row => {
+            let showRow = true;
+            
+            // Filter by search term
+            if (searchTerm) {
+                const name = row.getAttribute('data-name');
+                const address = row.getAttribute('data-address');
+                if (!name.includes(searchTerm) && !address.includes(searchTerm)) {
+                    showRow = false;
+                }
+            }
+            
+            // Apply category filters
+            if (showRow && activeFilter !== 'all') {
+                if (activeFilter === 'free' && row.getAttribute('data-paid') === 'true') {
+                    showRow = false;
+                } else if (activeFilter === 'paid' && row.getAttribute('data-paid') === 'false') {
+                    showRow = false;
+                } else if (activeFilter === 'high-vacancy' && parseInt(row.getAttribute('data-vacancy')) < 60) {
+                    showRow = false;
+                }
+            }
+            
+            row.style.display = showRow ? '' : 'none';
+        });
+        
+        // Process mobile cards
+        mobileCards.forEach(card => {
+            let showCard = true;
+            
+            // Filter by search term
+            if (searchTerm) {
+                const name = card.getAttribute('data-name');
+                const address = card.getAttribute('data-address');
+                if (!name.includes(searchTerm) && !address.includes(searchTerm)) {
+                    showCard = false;
+                }
+            }
+            
+            // Apply category filters
+            if (showCard && activeFilter !== 'all') {
+                if (activeFilter === 'free' && card.getAttribute('data-paid') === 'true') {
+                    showCard = false;
+                } else if (activeFilter === 'paid' && card.getAttribute('data-paid') === 'false') {
+                    showCard = false;
+                } else if (activeFilter === 'high-vacancy' && parseInt(card.getAttribute('data-vacancy')) < 60) {
+                    showCard = false;
+                }
+            }
+            
+            card.style.display = showCard ? '' : 'none';
+        });
+        
+        // Check if any results are visible
+        const visibleDesktopRows = [...desktopRows].filter(row => row.style.display !== 'none').length;
+        const visibleMobileCards = [...mobileCards].filter(card => card.style.display !== 'none').length;
+        
+        // Show "No results" message if needed
+        const noResultsDesktop = document.querySelector('#monitorsTable tbody tr:last-child');
+        if (noResultsDesktop) {
+            noResultsDesktop.style.display = visibleDesktopRows === 0 ? '' : 'none';
+        }
+        
+        // For mobile, we'd need to add a no results element if there isn't already one
+        if (visibleMobileCards === 0 && document.querySelector('.mobile-cards .no-results') === null) {
+            const noResultsElem = document.createElement('div');
+            noResultsElem.className = 'no-results';
+            noResultsElem.innerHTML = `
+                <i class="fas fa-search"></i>
+                <h4>No parking monitors found</h4>
+                <p class="text-muted">Try adjusting your search or filters</p>
+            `;
+            document.querySelector('.mobile-cards').appendChild(noResultsElem);
+        } else if (visibleMobileCards > 0) {
+            const noResultsMobile = document.querySelector('.mobile-cards .no-results');
+            if (noResultsMobile) {
+                noResultsMobile.remove();
+            }
+        }
+    }
+    
+    // Sorting function
+    function sortMonitors(sortBy) {
+        // Sort desktop table
+        const tbody = document.querySelector('#monitorsTable tbody');
+        const rows = Array.from(tbody.querySelectorAll('tr:not(:last-child)'));
+        
+        rows.sort((a, b) => {
+            if (sortBy === 'name') {
+                const nameA = a.getAttribute('data-name');
+                const nameB = b.getAttribute('data-name');
+                return nameA.localeCompare(nameB);
+            } else if (sortBy === 'vacancy') {
+                const vacancyA = parseInt(a.getAttribute('data-vacancy'));
+                const vacancyB = parseInt(b.getAttribute('data-vacancy'));
+                return vacancyB - vacancyA; // Higher vacancy first
+            } else if (sortBy === 'distance') {
+                const distanceA = parseFloat(a.querySelector('.badge.bg-info').textContent);
+                const distanceB = parseFloat(b.querySelector('.badge.bg-info').textContent);
+                return distanceA - distanceB; // Closer first
+            } else if (sortBy === 'updated') {
+                // This is more complex and would require additional data attributes with timestamps
+                return 0;
+            }
+            return 0;
+        });
+        
+        // Reorder desktop rows
+        rows.forEach(row => tbody.appendChild(row));
+        
+        // Sort mobile cards
+        const mobileCardsContainer = document.querySelector('.mobile-cards');
+        const cards = Array.from(mobileCardsContainer.querySelectorAll('.mobile-card'));
+        
+        cards.sort((a, b) => {
+            if (sortBy === 'name') {
+                const nameA = a.getAttribute('data-name');
+                const nameB = b.getAttribute('data-name');
+                return nameA.localeCompare(nameB);
+            } else if (sortBy === 'vacancy') {
+                const vacancyA = parseInt(a.getAttribute('data-vacancy'));
+                const vacancyB = parseInt(b.getAttribute('data-vacancy'));
+                return vacancyB - vacancyA; // Higher vacancy first
+            } else if (sortBy === 'distance') {
+                const distanceA = parseFloat(a.querySelector('.badge.bg-info').textContent);
+                const distanceB = parseFloat(b.querySelector('.badge.bg-info').textContent);
+                return distanceA - distanceB; // Closer first
+            } else if (sortBy === 'updated') {
+                // This is more complex and would require additional data attributes with timestamps
+                return 0;
+            }
+            return 0;
+        });
+        
+        // Reorder mobile cards
+        cards.forEach(card => mobileCardsContainer.appendChild(card));
+    }
+});
 </script>
-
-<div class="container py-4">
-    <h1 class="mb-4 text-center fw-bold text-dark">Search Parking Monitors</h1>
-    <form method="post" class="mb-4 d-flex flex-column align-items-center gap-2">
-        {% csrf_token %}
-        <p id="display" class="text-danger"></p>
-        <input type="hidden" name="latitude" id="latitude"/>
-        <input type="hidden" name="longitude" id="longitude"/>
-        <button type="submit" id="search-near-me-button" class="btn btn-primary px-4">
-            <i class="fas fa-map-marker-alt me-2"></i>Search Near Me
-        </button>
-    </form>
-
-    <div class="card shadow-sm">
-        <div class="card-body">
-            <p id="mydesc" class="fw-semibold mb-3">Parking Monitors</p>
-            <div class="table-responsive">
-                <table class="table table-striped align-middle" aria-describedby="mydesc">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Name</th>
-                            <th>Address</th>
-                            <th>Hours</th>
-                            <th>Is Paid Parking</th>
-                            <th>Vacancy Rate (%)</th>
-                            {% if user_point %}
-                            <th>Distance</th>
-                            {% endif %}
-                            <th>Last Updated</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for parking_monitor in parking_lot_monitors %}
-                        <tr>
-                            <td>
-                                <a href="{% url 'parking-lot-monitor' parking_monitor.id %}" class="fw-semibold text-decoration-none text-primary">
-                                    {{ parking_monitor.name }}
-                                </a>
-                            </td>
-                            <td>{{ parking_monitor.parkingLot.address }}</td>
-                            <td>{{ parking_monitor.parkingLot.hours }}</td>
-                            <td>
-                                {% if parking_monitor.parkingLot.isPaidParking %}
-                                    <span class="badge bg-warning text-dark">Yes</span>
-                                {% else %}
-                                    <span class="badge bg-success">No</span>
-                                {% endif %}
-                            </td>
-                            <td>{{ parking_monitor.get_vacancy_rate }}%</td>
-                            {% if user_point %}
-                            <td>
-                                <span class="badge bg-info text-dark">
-                                    {% get_distance_from_lat_lang parking_monitor user_point.latitude user_point.longitude %}
-                                </span>
-                            </td>
-                            {% endif %}
-                            <td>
-                                <span class="text-muted small">
-                                    {{ parking_monitor.dateTimeLastUpdated|naturaltime }}
-                                </span>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
-{% endblock %}
-
-{% block scripts %}
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-
 {% endblock %}
