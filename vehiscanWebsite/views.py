@@ -4,7 +4,7 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.contrib.auth import logout
-from .models import ParkingLot, ParkingLotMonitor
+from .models import ParkingLot, ParkingLotMonitor, PendingParkingLotRegistration
 from .utility import record_user_query
 from django.db.models import QuerySet
 from geopy.geocoders import Nominatim
@@ -428,3 +428,73 @@ def verify_otp(request):
         except EmailOTP.DoesNotExist:
             return JsonResponse({'success': False, 'message': 'Invalid OTP.'})
     return JsonResponse({'success': False, 'message': 'Invalid request.'})
+
+# Add or update the view for handling the parking lot registration
+
+@login_required
+def create_parking_lot(request):
+    # Check if user is a lot owner
+    if request.user.profile.user_type != 'lot_owner':
+        messages.error(request, "You don't have permission to register a parking lot.")
+        return redirect('account')
+        
+    if request.method == 'POST':
+        try:
+            # Create a new pending registration
+            registration = PendingParkingLotRegistration(
+                # Parking lot details
+                name=request.POST.get('name'),
+                address=request.POST.get('address'),
+                hours=request.POST.get('hours'),
+                isPaidParking='isPaidParking' in request.POST,
+                latitude=request.POST.get('latitude'),
+                longitude=request.POST.get('longitude'),
+                parking_spaces=request.POST.get('parking_spaces'),
+                base_price_per_hour=request.POST.get('base_price_per_hour'),
+                
+                # Camera details
+                monitor_name=request.POST.get('monitor_name'),
+                monitor_latitude=request.POST.get('monitor_latitude') or request.POST.get('latitude'),
+                monitor_longitude=request.POST.get('monitor_longitude') or request.POST.get('longitude'),
+                camera_stream_url=request.POST.get('camera_stream_url'),
+                
+                # Owner info
+                owner=request.user.profile,
+                status='pending'
+            )
+            
+            # Handle image files if they exist
+            if 'image' in request.FILES:
+                registration.image = request.FILES['image']
+                
+            if 'camera_image' in request.FILES:
+                registration.camera_image = request.FILES['camera_image']
+                
+            registration.save()
+            
+            messages.success(request, 
+                "Your parking lot registration has been submitted successfully! "
+                "Our team will review and approve it shortly."
+            )
+            return redirect('account')
+            
+        except Exception as e:
+            messages.error(request, f"An error occurred during registration: {str(e)}")
+    
+    return render(request, 'listings/create.html')
+
+@login_required
+def my_registrations(request):
+    # Check if user is a lot owner
+    if request.user.profile.user_type != 'lot_owner':
+        messages.error(request, "You don't have permission to view parking lot registrations.")
+        return redirect('account')
+        
+    registrations = PendingParkingLotRegistration.objects.filter(
+        owner=request.user.profile
+    ).order_by('-submitted_date')
+    
+    return render(request, 'listings/my_registrations.html', {
+        'registrations': registrations,
+        'active_tab': 'listings'
+    })
