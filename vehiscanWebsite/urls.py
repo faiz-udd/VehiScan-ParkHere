@@ -21,7 +21,7 @@ urlpatterns = [
     path('account/settings/', views.account_settings, name='account_settings'),
     path('account/security/', views.security_settings, name='security_settings'),
     
-    path('account/create_listing/', views.create_listing, name='create_listing'),
+    path('account/create_listing/', views.create_listing, name='register_parking'),
     
     path('account/edit_listing/<int:listing_id>/', views.edit_listing, name='edit_listing'),
     path('listing/<int:pk>/edit/', views.edit_listing, name='edit_listing'),
