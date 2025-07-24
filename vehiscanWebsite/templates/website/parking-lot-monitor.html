@@ -17,7 +17,8 @@
     padding: 6rem 0 4rem;
     border-radius: 0;
     overflow: hidden;
-    background-color: #44b8f3;
+    color:white;
+    background-image: linear-gradient(to right bottom, #6fa1ff, #2cb2ff, #00c0fd, #00ccf0, #00d5de, #3ddcd2, #61e2c4, #81e7b7, #aaedba, #caf2c3, #e4f8d1, #f9ffe3);
   }
   
   .monitor-hero::before {
@@ -27,7 +28,6 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: linear-gradient(to right, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.4) 100%);
     z-index: 1;
   }
   
@@ -294,6 +294,19 @@
       height: 300px;
     }
   }
+.cta-section {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 16px;
+  padding: 3rem;
+  text-align: center;
+  margin-top: 3rem;
+}
+
+.section-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #e9ecef, transparent);
+  margin: 3rem 0;
+}
 </style>
 {% endblock %}
 
@@ -539,6 +552,20 @@
             </div>
         </div>
     </div>
+    <div class="section-divider"></div>
+
+<!-- Call to action section -->
+<div class="cta-section animate__animated animate__fadeIn animate__delay-2s">
+    <h3 class="mb-4 fw-bold">Need help finding this parking monitor?</h3>
+    <p class="mb-4 text-muted mx-auto" style="max-width: 600px;">
+        Get turn-by-turn directions to {{ parking_lot_monitor.name }} directly on your phone.
+        Our system is updated in real-time to show current availability.
+    </p>
+    <a href="https://www.google.com/maps/dir/?api=1&destination={{ parking_lot_monitor.latitude }},{{ parking_lot_monitor.longitude }}" 
+       class="btn btn-lg directions-btn" target="_blank">
+        <i class="fas fa-directions me-2"></i> Get Directions Now
+    </a>
+</div>
 </div>
 {% endblock %}
 

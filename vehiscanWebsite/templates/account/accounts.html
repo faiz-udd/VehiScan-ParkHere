@@ -9,7 +9,7 @@
   <div class="container-fluid">
     <div class="row gx-5">
       <!-- Left Navigation Sidebar -->
-      <div class="col-lg-3 col-xxl-2">
+      <div class="col-lg-3 col-xxl-2 mt-3">
         <div class="account-sidebar card shadow-sm h-100 rounded-3 border-0">
           <div class="card-body p-4 d-flex flex-column align-items-center">
             <div class="d-flex flex-column align-items-center mb-4 w-100">
@@ -276,13 +276,6 @@
             
           {% elif user.profile.user_type == 'lot_owner' %}
             <!-- Space Owner Content -->
-            <div class="d-flex justify-content-between align-items-center mb-4">
-              <h2 class="h4 mb-0 fw-bold">My Listings</h2>
-              <a href="{% url 'create_listing' %}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Add New Space
-              </a>
-            </div>
-
             <!-- Status Pills -->
             <ul class="nav nav-pills mb-4">
               <li class="nav-item">
