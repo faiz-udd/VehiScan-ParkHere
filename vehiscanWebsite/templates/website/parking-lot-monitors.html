@@ -15,7 +15,7 @@
   }
   
   .page-header {
-    background: linear-gradient(135deg, #2dc98a 0%, #44b8f3 100%);
+    background-image: linear-gradient(to right bottom, #6fa1ff, #2cb2ff, #00c0fd, #00ccf0, #00d5de, #3ddcd2, #61e2c4, #81e7b7, #aaedba, #caf2c3, #e4f8d1, #f9ffe3);
     padding: 3rem 0;
     margin-bottom: 2rem;
     color: white;
@@ -57,6 +57,9 @@
     background: white;
     overflow: hidden;
     margin-top: 2rem;
+    margin-bottom: 2rem;
+    display: flex;
+    flex-direction: column;
   }
   
   .btn-primary {
@@ -78,7 +81,6 @@
   .btn-outline-primary {
     color: #2dc98a;
     border: 2px solid #2dc98a;
-    border-radius: 2rem;
     background: transparent;
     transition: all 0.3s ease;
     font-weight: 500;
@@ -363,6 +365,52 @@
     font-size: 3rem;
     color: #dee2e6;
     margin-bottom: 1rem;
+  }
+  
+  .card-body.p-0 {
+    overflow: auto;
+    max-height: 70vh; /* Limit the height and make it scrollable */
+  }
+  
+  .table-responsive {
+    overflow-y: auto;
+    max-height: 70vh;
+  }
+  
+  /* Ensure the table header stays fixed during scroll */
+  .table thead {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  
+  /* Mobile cards container needs scroll too */
+  .mobile-cards {
+    max-height: 70vh;
+    overflow-y: auto;
+    padding-bottom: 1rem;
+  }
+  
+  /* Make sure footer doesn't get covered */
+  .container {
+    margin-bottom: 2rem;
+  }
+  
+  /* Fix for table scrolling */
+  .desktop-table {
+    overflow-y: auto;
+    max-height: 70vh;
+    display: block;
+  }
+  
+  @media (max-width: 992px) {
+    .card-body.p-0 {
+      max-height: 60vh; /* Slightly smaller on mobile */
+    }
+    
+    .mobile-cards {
+      max-height: 60vh;
+    }
   }
 </style>
 {% endblock %}
