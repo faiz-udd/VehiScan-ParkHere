@@ -13,7 +13,7 @@ from perfectparking import ParkingMonitorData, RestApiUtility
 SECONDS_TIME_DELAY = 0.002
 IOU_THRESHOLD = 0.1  # Minimum overlap to consider occupied
 HISTORY_LENGTH = 4     # Frames for temporal filtering
-CONFIDENCE_THRESHOLD = 0.6  # YOLO detection confidence
+CONFIDENCE_THRESHOLD = 0.1  # YOLO detection confidence
 
 class ParkingSpot:
     def __init__(self, coordinates: ndarray, parking_spot_id: int):

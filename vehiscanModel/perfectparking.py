@@ -16,19 +16,32 @@ class ParkingMonitorData:
         """
         config_parser: ConfigParser = ConfigParser()
 
-        config_parser.read(config_filepath)
+        # Check if config file exists and can be read
+        files_read = config_parser.read(config_filepath)
+        
+        if not files_read:
+            raise FileNotFoundError(f"Configuration file not found or could not be read: {config_filepath}")
+        
+        # Validate required sections exist
+        required_sections = ["ParkingLotMonitor", "App"]
+        for section in required_sections:
+            if not config_parser.has_section(section):
+                raise ValueError(f"Missing required section '{section}' in config file: {config_filepath}")
 
-        self.id = config_parser["ParkingLotMonitor"]["Id"]
-        self.name = config_parser["ParkingLotMonitor"]["Name"]
-        self.latitude = config_parser["ParkingLotMonitor"]["Latitude"]
-        self.longitude = config_parser["ParkingLotMonitor"]["Longitude"]
-        self.parking_spaces = config_parser["ParkingLotMonitor"]["ParkingSpaces"]
-        
-        self.app_token = config_parser["App"]["Token"]
-        self.app_username = config_parser["App"]["Username"]
-        self.app_password = config_parser["App"]["Password"]
-        self.server_url = config_parser["App"]["ServerUrl"]
-        
+        try:
+            self.id = config_parser["ParkingLotMonitor"]["Id"]
+            self.name = config_parser["ParkingLotMonitor"]["Name"]
+            self.latitude = config_parser["ParkingLotMonitor"]["Latitude"]
+            self.longitude = config_parser["ParkingLotMonitor"]["Longitude"]
+            self.parking_spaces = config_parser["ParkingLotMonitor"]["ParkingSpaces"]
+            
+            self.app_token = config_parser["App"]["Token"]
+            self.app_username = config_parser["App"]["Username"]
+            self.app_password = config_parser["App"]["Password"]
+            self.server_url = config_parser["App"]["ServerUrl"]
+        except KeyError as e:
+            raise ValueError(f"Missing required configuration key {e} in config file: {config_filepath}")
+
 
 class RestApiUtility:
     """This class contains utility methods for interacting with the server REST API"""

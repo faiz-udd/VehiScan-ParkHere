@@ -81,10 +81,24 @@ def update_total_spaces_to_backend(data_file: str, config_filepath: str):
     with the total number of spaces for the ParkingLot corresponding to the monitor.
     """
     import yaml
+    import os
+
+    # Check if config file exists
+    if not os.path.exists(config_filepath):
+        print(f"Configuration file not found: {config_filepath}")
+        print("Please make sure the config file exists before running the parking monitor.")
+        return
 
     # Load parking spaces from YAML
-    with open(data_file, "r") as f:
-        parking_spaces = yaml.full_load(f)
+    try:
+        with open(data_file, "r") as f:
+            parking_spaces = yaml.full_load(f)
+    except FileNotFoundError:
+        print(f"Data file not found: {data_file}")
+        return
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML file: {e}")
+        return
 
     # Extract unique IDs from the YAML data
     ids = set()
@@ -95,7 +109,11 @@ def update_total_spaces_to_backend(data_file: str, config_filepath: str):
     total_spaces = len(ids)
 
     # Load monitor data
-    monitor_data = ParkingMonitorData(config_filepath)
+    try:
+        monitor_data = ParkingMonitorData(config_filepath)
+    except (FileNotFoundError, ValueError) as e:
+        print(f"Error loading configuration: {e}")
+        return
 
     # You need the ParkingLot ID. Assuming monitor_data has parking_lot_id or similar.
     parking_lot_id = getattr(monitor_data, "id", None)
@@ -115,12 +133,15 @@ def update_total_spaces_to_backend(data_file: str, config_filepath: str):
         "Content-Type": "application/json",
     }
     auth = HTTPBasicAuth(monitor_data.app_username, monitor_data.app_password)
-    response = requests.patch(url, json=payload, headers=headers, auth=auth)
-
-    if response.ok:
-        print(f"Successfully updated total spaces to {total_spaces} for ParkingLot {parking_lot_id}")
-    else:
-        print(f"Failed to update total spaces: {response.status_code} {response.text}")
+    
+    try:
+        response = requests.patch(url, json=payload, headers=headers, auth=auth)
+        if response.ok:
+            print(f"Successfully updated total spaces to {total_spaces} for ParkingLot {parking_lot_id}")
+        else:
+            print(f"Failed to update total spaces: {response.status_code} {response.text}")
+    except requests.RequestException as e:
+        print(f"Network error occurred: {e}")
 
 
 if __name__ == '__main__':
